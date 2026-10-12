@@ -99,7 +99,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<BloodType>(
-              value: _bloodType,
+              initialValue: _bloodType,
               items: BloodType.values
                   .map(
                     (item) => DropdownMenuItem(
@@ -131,7 +131,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<MemberStatus>(
-              value: _status,
+              initialValue: _status,
               items: MemberStatus.values
                   .map(
                     (item) => DropdownMenuItem(
