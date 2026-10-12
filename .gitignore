@@ -1,0 +1,30 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log
+
+# Environment
+.env
+.env.local
+
+# Java / Spring Boot
+backend/gestor-mc-api/target/
+backend/gestor-mc-api/.mvn/
+
+# Flutter / Dart
+mobile/gestor_mc_app/.dart_tool/
+mobile/gestor_mc_app/.idea/
+mobile/gestor_mc_app/.metadata
+mobile/gestor_mc_app/build/
+mobile/gestor_mc_app/.packages
+mobile/gestor_mc_app/pubspec.lock
+
+# Flutter platform folders generated locally
+mobile/gestor_mc_app/android/
+mobile/gestor_mc_app/ios/
+mobile/gestor_mc_app/linux/
+mobile/gestor_mc_app/macos/
+mobile/gestor_mc_app/windows/
+mobile/gestor_mc_app/web/
