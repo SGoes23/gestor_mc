@@ -119,7 +119,7 @@ public class MemberController {
                 motorcycle.getYear(),
                 motorcycle.getColor(),
                 motorcycle.getLicensePlate(),
-                motorcycle.getMemberId()
+                motorcycle.getMember().getId()
         );
     }
 
