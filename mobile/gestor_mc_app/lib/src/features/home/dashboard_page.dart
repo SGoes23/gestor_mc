@@ -36,7 +36,9 @@ class _DashboardPageState extends State<DashboardPage> {
   List<MonthlyFeeItem> _defaulters = const [];
   List<ClubEvent> _events = const [];
   bool _loading = true;
-  String? _error;
+  String? _membersError;
+  String? _monthlyFeesError;
+  String? _eventsError;
 
   @override
   void initState() {
@@ -47,31 +49,45 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _load() async {
     setState(() {
       _loading = true;
-      _error = null;
+      _membersError = null;
+      _monthlyFeesError = null;
+      _eventsError = null;
     });
     final now = DateTime.now();
     final month = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    List<MemberSummary> members = const [];
+    List<MonthlyFeeItem> defaulters = const [];
+    List<ClubEvent> events = const [];
+    String? membersError;
+    String? monthlyFeesError;
+    String? eventsError;
+
     try {
-      final membersFuture = widget.memberService.listMembers(widget.session.token);
-      final defaultersFuture = widget.monthlyFeeService.listDefaulters(widget.session.token, month);
-      final eventsFuture = widget.eventService.listEvents(widget.session.token);
-      final members = await membersFuture;
-      final defaulters = await defaultersFuture;
-      final events = await eventsFuture;
-      if (!mounted) return;
-      setState(() {
-        _members = members;
-        _defaulters = defaulters;
-        _events = events;
-      });
+      members = await widget.memberService.listMembers(widget.session.token);
     } catch (error) {
-      if (!mounted) return;
-      setState(() => _error = 'Nao foi possivel carregar o dashboard: $error');
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      membersError = 'Nao foi possivel carregar membros: $error';
     }
+    try {
+      defaulters = await widget.monthlyFeeService.listDefaulters(widget.session.token, month);
+    } catch (error) {
+      monthlyFeesError = 'Nao foi possivel carregar mensalidades: $error';
+    }
+    try {
+      events = await widget.eventService.listEvents(widget.session.token);
+    } catch (error) {
+      eventsError = 'Nao foi possivel carregar reunioes: $error';
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _members = members;
+      _defaulters = defaulters;
+      _events = events;
+      _membersError = membersError;
+      _monthlyFeesError = monthlyFeesError;
+      _eventsError = eventsError;
+      _loading = false;
+    });
   }
 
   void _openMembers() {
@@ -149,26 +165,25 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: EdgeInsets.all(32),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (_error != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ),
-              )
             else ...[
-              _MetricCard(
-                icon: Icons.groups,
-                title: 'Membros ativos',
-                value: '$activeMembers',
-                subtitle: 'de ${_members.length} membros cadastrados',
-              ),
-              _MetricCard(
-                icon: Icons.groups_2,
-                title: 'Reunioes neste mes',
-                value: '$monthlyMeetings',
-                subtitle: 'conforme o calendario',
-              ),
+              if (_membersError != null)
+                _UnavailableCard(title: 'Membros ativos', message: _membersError!)
+              else
+                _MetricCard(
+                  icon: Icons.groups,
+                  title: 'Membros ativos',
+                  value: '$activeMembers',
+                  subtitle: 'de ${_members.length} membros cadastrados',
+                ),
+              if (_eventsError != null)
+                _UnavailableCard(title: 'Reunioes neste mes', message: _eventsError!)
+              else
+                _MetricCard(
+                  icon: Icons.groups_2,
+                  title: 'Reunioes neste mes',
+                  value: '$monthlyMeetings',
+                  subtitle: 'conforme o calendario',
+                ),
               const Card(
                 child: ListTile(
                   leading: Icon(Icons.account_balance_wallet_outlined),
@@ -179,7 +194,9 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 16),
               Text('Mensalidades em atraso', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              if (_defaulters.isEmpty)
+              if (_monthlyFeesError != null)
+                _UnavailableCard(title: 'Mensalidades em atraso', message: _monthlyFeesError!)
+              else if (_defaulters.isEmpty)
                 const Card(child: ListTile(title: Text('Nenhuma mensalidade pendente neste mes.')))
               else
                 ..._defaulters.map((fee) => _DefaulterCard(fee: fee)),
@@ -239,6 +256,27 @@ class _MetricCard extends StatelessWidget {
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: Text(value, style: Theme.of(context).textTheme.headlineSmall),
+      ),
+    );
+  }
+}
+
+class _UnavailableCard extends StatelessWidget {
+  const _UnavailableCard({
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+        title: Text(title),
+        subtitle: Text(message),
       ),
     );
   }
