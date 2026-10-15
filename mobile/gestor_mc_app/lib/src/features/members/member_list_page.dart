@@ -154,58 +154,67 @@ class _MemberListPageState extends State<MemberListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/leopardos_mc_logo.png',
-              width: 36,
-              height: 36,
-              fit: BoxFit.contain,
-              semanticLabel: 'Logo do Leopardos Moto Clube',
-            ),
-            const SizedBox(width: 8),
-            const Text('Membros'),
-          ],
-        ),
+        title: const Text('Membros'),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MonthlyFeesMonthPage(
-                    session: widget.session,
-                    monthlyFeeService: widget.monthlyFeeService,
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.calendar_month),
-            tooltip: 'Mensalidades do mes',
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => DefaultersPage(
-                    session: widget.session,
-                    monthlyFeeService: widget.monthlyFeeService,
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.warning_amber),
-            tooltip: 'Inadimplentes',
-          ),
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(widget.session.profile),
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                widget.session.profile,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
             ),
           ),
-          IconButton(
-            onPressed: widget.onLogout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
+          PopupMenuButton<String>(
+            tooltip: 'Mais opcoes',
+            onSelected: (value) {
+              switch (value) {
+                case 'monthlyFees':
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MonthlyFeesMonthPage(
+                        session: widget.session,
+                        monthlyFeeService: widget.monthlyFeeService,
+                      ),
+                    ),
+                  );
+                case 'defaulters':
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => DefaultersPage(
+                        session: widget.session,
+                        monthlyFeeService: widget.monthlyFeeService,
+                      ),
+                    ),
+                  );
+                case 'logout':
+                  widget.onLogout();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'monthlyFees',
+                child: ListTile(
+                  leading: Icon(Icons.calendar_month),
+                  title: Text('Mensalidades do mes'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'defaulters',
+                child: ListTile(
+                  leading: Icon(Icons.warning_amber),
+                  title: Text('Inadimplentes'),
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Sair'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

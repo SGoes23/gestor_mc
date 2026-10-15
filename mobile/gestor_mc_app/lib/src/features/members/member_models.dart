@@ -123,7 +123,7 @@ class MemberSummary {
       phone: json['phone'] as String,
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
-      address: json['address'] as String,
+      address: (json['address'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
     );
@@ -154,7 +154,7 @@ class MemberDetail extends MemberSummary {
       phone: json['phone'] as String,
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
-      address: json['address'] as String,
+      address: (json['address'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
       motorcycles: (json['motorcycles'] as List<dynamic>)
