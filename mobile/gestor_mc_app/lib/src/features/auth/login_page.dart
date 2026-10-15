@@ -80,11 +80,18 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Gestor MC',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
+                      Image.asset(
+                        'assets/images/leopardos_mc_logo.png',
+                        height: 180,
+                        fit: BoxFit.contain,
+                        semanticLabel: 'Logo do Leopardos Moto Clube',
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Leopardos MC',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                        textAlign: TextAlign.center,
+                      ),
                     const SizedBox(height: 4),
                     Text(
                       'Entre com e-mail e senha',

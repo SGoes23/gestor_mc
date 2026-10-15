@@ -154,7 +154,19 @@ class _MemberListPageState extends State<MemberListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Membros'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/leopardos_mc_logo.png',
+              width: 36,
+              height: 36,
+              fit: BoxFit.contain,
+              semanticLabel: 'Logo do Leopardos Moto Clube',
+            ),
+            const SizedBox(width: 8),
+            const Text('Membros'),
+          ],
+        ),
         actions: [
           IconButton(
             onPressed: () {
