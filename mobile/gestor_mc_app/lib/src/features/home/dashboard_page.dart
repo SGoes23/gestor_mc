@@ -193,12 +193,6 @@ class _DashboardPageState extends State<DashboardPage> {
             Text('Acessos rapidos', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             _NavigationCard(
-              icon: Icons.dashboard_outlined,
-              title: 'Dashboard',
-              subtitle: 'Visao geral do clube',
-              onTap: _load,
-            ),
-            _NavigationCard(
               icon: Icons.people_outline,
               title: 'Membros',
               subtitle: 'Cadastros, motos e dados dos integrantes',
