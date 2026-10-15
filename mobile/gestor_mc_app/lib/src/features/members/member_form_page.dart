@@ -21,6 +21,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
   late final TextEditingController _nicknameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emergencyController;
+  late final TextEditingController _addressController;
   late final TextEditingController _roleController;
 
   late BloodType _bloodType;
@@ -34,6 +35,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _nicknameController = TextEditingController(text: initial?.nickname ?? '');
     _phoneController = TextEditingController(text: initial?.phone ?? '');
     _emergencyController = TextEditingController(text: initial?.emergencyContact ?? '');
+    _addressController = TextEditingController(text: initial?.address ?? '');
     _roleController = TextEditingController(text: initial?.role ?? 'Membro');
     _bloodType = initial?.bloodType ?? BloodType.oPositive;
     _status = initial?.status ?? MemberStatus.ativo;
@@ -45,6 +47,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _nicknameController.dispose();
     _phoneController.dispose();
     _emergencyController.dispose();
+    _addressController.dispose();
     _roleController.dispose();
     super.dispose();
   }
@@ -61,6 +64,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
         phone: _phoneController.text.trim(),
         bloodType: _bloodType,
         emergencyContact: _emergencyController.text.trim(),
+        address: _addressController.text.trim(),
         role: _roleController.text.trim(),
         status: _status,
       ),
@@ -99,7 +103,7 @@ class _MemberFormPageState extends State<MemberFormPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<BloodType>(
-              value: _bloodType,
+              initialValue: _bloodType,
               items: BloodType.values
                   .map(
                     (item) => DropdownMenuItem(
@@ -125,13 +129,19 @@ class _MemberFormPageState extends State<MemberFormPage> {
             ),
             const SizedBox(height: 12),
             TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Endereco'),
+              validator: _required,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
               controller: _roleController,
               decoration: const InputDecoration(labelText: 'Cargo'),
               validator: _required,
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<MemberStatus>(
-              value: _status,
+              initialValue: _status,
               items: MemberStatus.values
                   .map(
                     (item) => DropdownMenuItem(

@@ -99,6 +99,7 @@ class MemberSummary {
   final String phone;
   final BloodType bloodType;
   final String emergencyContact;
+  final String address;
   final String role;
   final MemberStatus status;
 
@@ -109,6 +110,7 @@ class MemberSummary {
     required this.phone,
     required this.bloodType,
     required this.emergencyContact,
+    required this.address,
     required this.role,
     required this.status,
   });
@@ -121,6 +123,7 @@ class MemberSummary {
       phone: json['phone'] as String,
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
+      address: json['address'] as String,
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
     );
@@ -137,6 +140,7 @@ class MemberDetail extends MemberSummary {
     required super.phone,
     required super.bloodType,
     required super.emergencyContact,
+    required super.address,
     required super.role,
     required super.status,
     required this.motorcycles,
@@ -150,6 +154,7 @@ class MemberDetail extends MemberSummary {
       phone: json['phone'] as String,
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
+      address: json['address'] as String,
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
       motorcycles: (json['motorcycles'] as List<dynamic>)
@@ -165,6 +170,7 @@ class UpsertMemberPayload {
   final String phone;
   final BloodType bloodType;
   final String emergencyContact;
+  final String address;
   final String role;
   final MemberStatus status;
 
@@ -174,6 +180,7 @@ class UpsertMemberPayload {
     required this.phone,
     required this.bloodType,
     required this.emergencyContact,
+    required this.address,
     required this.role,
     required this.status,
   });
@@ -185,6 +192,7 @@ class UpsertMemberPayload {
       'phone': phone,
       'bloodType': bloodTypeToApi(bloodType),
       'emergencyContact': emergencyContact,
+      'address': address,
       'role': role,
       'status': memberStatusToApi(status),
     };

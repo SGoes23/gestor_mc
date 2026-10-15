@@ -36,6 +36,9 @@ public class Member {
     @Column(nullable = false)
     private String emergencyContact;
 
+    @Column(nullable = false)
+    private String address;
+
     @Column(name = "member_role", nullable = false)
     private String role;
 
@@ -47,12 +50,13 @@ public class Member {
     }
 
     public Member(String fullName, String nickname, String phone, BloodType bloodType,
-                  String emergencyContact, String role, MemberStatus status) {
+                  String emergencyContact, String address, String role, MemberStatus status) {
         this.fullName = fullName;
         this.nickname = nickname;
         this.phone = phone;
         this.bloodType = bloodType;
         this.emergencyContact = emergencyContact;
+        this.address = address;
         this.role = role;
         this.status = status;
     }
@@ -99,6 +103,14 @@ public class Member {
 
     public void setEmergencyContact(String emergencyContact) {
         this.emergencyContact = emergencyContact;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getRole() {

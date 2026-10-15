@@ -182,11 +182,21 @@ class _MonthlyFeesMonthPageState extends State<MonthlyFeesMonthPage> {
                               '${item.memberNickname} | R\$ ${item.amount.toStringAsFixed(2)} | Venc: ${_dateText(item.dueDate)}',
                             ),
                             trailing: isDiretoria
-                                ? TextButton(
+                                ? ActionChip(
                                     onPressed: () => _toggleStatus(item),
-                                    child: Text(paid ? 'Marcar pendente' : 'Marcar pago'),
+                                    avatar: Icon(
+                                      paid ? Icons.check_circle : Icons.error,
+                                      color: paid ? Colors.green : Colors.red,
+                                    ),
+                                    backgroundColor: paid ? Colors.green.shade50 : Colors.red.shade50,
+                                    label: Text(paid ? 'PAGO' : 'PENDENTE'),
                                   )
                                 : Chip(
+                                    avatar: Icon(
+                                      paid ? Icons.check_circle : Icons.error,
+                                      color: paid ? Colors.green : Colors.red,
+                                    ),
+                                    backgroundColor: paid ? Colors.green.shade50 : Colors.red.shade50,
                                     label: Text(paid ? 'PAGO' : 'PENDENTE'),
                                   ),
                           ),

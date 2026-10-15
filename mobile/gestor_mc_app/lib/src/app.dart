@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'core/api_client.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/login_page.dart';
-import 'features/members/member_list_page.dart';
+import 'features/events/event_service.dart';
+import 'features/home/dashboard_page.dart';
 import 'features/members/member_service.dart';
 import 'features/monthly_fees/monthly_fee_service.dart';
 
@@ -24,6 +25,7 @@ class _GestorMcAppState extends State<GestorMcApp> {
   late final AuthService _authService;
   late final MemberService _memberService;
   late final MonthlyFeeService _monthlyFeeService;
+  late final EventService _eventService;
 
   AuthSession? _session;
 
@@ -34,6 +36,7 @@ class _GestorMcAppState extends State<GestorMcApp> {
     _authService = AuthService(_apiClient);
     _memberService = MemberService(_apiClient);
     _monthlyFeeService = MonthlyFeeService(_apiClient);
+    _eventService = EventService(_apiClient);
   }
 
   @override
@@ -54,10 +57,11 @@ class _GestorMcAppState extends State<GestorMcApp> {
                 });
               },
             )
-          : MemberListPage(
+          : DashboardPage(
               session: _session!,
               memberService: _memberService,
               monthlyFeeService: _monthlyFeeService,
+              eventService: _eventService,
               onLogout: () {
                 setState(() {
                   _session = null;

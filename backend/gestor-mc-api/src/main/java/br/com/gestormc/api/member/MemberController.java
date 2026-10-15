@@ -53,6 +53,7 @@ public class MemberController {
                 request.phone(),
                 request.bloodType(),
                 request.emergencyContact(),
+                request.address(),
                 request.role(),
                 request.status() == null ? MemberStatus.ATIVO : request.status()
         );
@@ -67,6 +68,7 @@ public class MemberController {
         member.setPhone(request.phone());
         member.setBloodType(request.bloodType());
         member.setEmergencyContact(request.emergencyContact());
+        member.setAddress(request.address());
         member.setRole(request.role());
         member.setStatus(request.status() == null ? MemberStatus.ATIVO : request.status());
         return toSummary(memberRepository.save(member));
@@ -92,6 +94,7 @@ public class MemberController {
                 member.getPhone(),
                 member.getBloodType(),
                 member.getEmergencyContact(),
+                member.getAddress(),
                 member.getRole(),
                 member.getStatus()
         );
@@ -106,6 +109,7 @@ public class MemberController {
                 summary.phone(),
                 summary.bloodType(),
                 summary.emergencyContact(),
+                summary.address(),
                 summary.role(),
                 summary.status(),
                 motorcycles
@@ -129,6 +133,7 @@ public class MemberController {
             @NotBlank String phone,
             @NotNull BloodType bloodType,
             @NotBlank String emergencyContact,
+            @NotBlank String address,
             @NotBlank String role,
             MemberStatus status
     ) {
@@ -141,6 +146,7 @@ public class MemberController {
             String phone,
             BloodType bloodType,
             String emergencyContact,
+            String address,
             String role,
             MemberStatus status
     ) {
@@ -153,6 +159,7 @@ public class MemberController {
             String phone,
             BloodType bloodType,
             String emergencyContact,
+            String address,
             String role,
             MemberStatus status,
             List<MotorcycleResponse> motorcycles

@@ -167,6 +167,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                               Text('Telefone: ${member.phone}'),
                               Text('Sanguineo: ${_bloodTypeLabel(member.bloodType)}'),
                               Text('Emergencia: ${member.emergencyContact}'),
+                              Text('Endereco: ${member.address}'),
                               Text('Cargo: ${member.role}'),
                               Text('Status: ${member.status == MemberStatus.ativo ? 'Ativo' : 'Inativo'}'),
                               const SizedBox(height: 12),
