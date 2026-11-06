@@ -50,6 +50,46 @@ mvn spring-boot:run
 API base: `http://localhost:8080`
 Healthcheck: `GET /api/health`
 
+### Rodar com Docker
+
+O `docker-compose.yml` localizado em `backend/gestor-mc-api` sobe a API e um banco PostgreSQL local. Na primeira execucao, o Docker constroi a aplicacao e o Flyway aplica automaticamente as migrations do banco.
+
+No PowerShell:
+
+```powershell
+cd backend/gestor-mc-api
+docker compose up --build -d
+```
+
+Servicos e credenciais padrao:
+
+- API: `http://localhost:8081`
+- Healthcheck: `http://localhost:8081/api/health`
+- PostgreSQL: `localhost:5433`
+- Banco: `gestor_mc`
+- Usuario: `gestor_mc`
+- Senha: `gestor_mc_local`
+
+Para acompanhar os logs da API:
+
+```powershell
+docker compose logs -f api
+```
+
+Para parar e remover os containers:
+
+```powershell
+docker compose down
+```
+
+Os dados do PostgreSQL sao mantidos no volume Docker `postgres_data`. Para alterar as portas publicadas, defina `API_PORT` e/ou `DB_EXTERNAL_PORT` antes de subir os servicos:
+
+```powershell
+$env:API_PORT="8082"
+$env:DB_EXTERNAL_PORT="5434"
+docker compose up --build -d
+```
+
 ### Endpoints principais da Fase 2 (Mensalidades)
 - `POST /api/monthly-fees/generate` (diretoria)
 - `PATCH /api/monthly-fees/{id}/status` (diretoria)
