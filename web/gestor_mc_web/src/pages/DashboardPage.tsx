@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MetricLinkCard } from '../components/MetricLinkCard'
 import { ErrorState, LoadingState, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
@@ -81,30 +82,37 @@ export function DashboardPage() {
       {!loading && data && (
         <>
           <section className="metric-grid" aria-label="Indicadores do clube">
-            <article className="metric-card metric-dark">
-              <div className="metric-icon"><UsersRound size={24} /></div>
-              <span>Membros ativos</span>
-              <strong>{metrics.activeMembers}</strong>
-              <small>de {data.members.length} cadastrados</small>
-            </article>
-            <article className="metric-card">
-              <div className="metric-icon"><CalendarDays size={24} /></div>
-              <span>Reuniões no mês</span>
-              <strong>{metrics.meetings}</strong>
-              <small>conforme o calendário</small>
-            </article>
-            <article className="metric-card metric-alert">
-              <div className="metric-icon"><ShieldAlert size={24} /></div>
-              <span>Mensalidades pendentes</span>
-              <strong>{data.defaulters.length}</strong>
-              <small>{formatCurrency(metrics.overdueTotal)} em aberto</small>
-            </article>
-            <article className="metric-card">
-              <div className="metric-icon"><CircleDollarSign size={24} /></div>
-              <span>Caixa do clube</span>
-              <strong className="metric-placeholder">Em breve</strong>
-              <small>Módulo financeiro planejado</small>
-            </article>
+            <MetricLinkCard
+              to="/membros"
+              icon={<UsersRound size={24} />}
+              title="Membros ativos"
+              value={metrics.activeMembers}
+              subtitle={`de ${data.members.length} cadastrados`}
+              tone="dark"
+            />
+            <MetricLinkCard
+              to="/eventos"
+              icon={<CalendarDays size={24} />}
+              title="Reuniões no mês"
+              value={metrics.meetings}
+              subtitle="conforme o calendário"
+            />
+            <MetricLinkCard
+              to="/inadimplentes"
+              icon={<ShieldAlert size={24} />}
+              title="Mensalidades pendentes"
+              value={data.defaulters.length}
+              subtitle={`${formatCurrency(metrics.overdueTotal)} em aberto`}
+              tone="alert"
+            />
+            <MetricLinkCard
+              to="/mensalidades"
+              icon={<CircleDollarSign size={24} />}
+              title="Caixa do clube"
+              value="Em breve"
+              subtitle="Acessar mensalidades"
+              compactValue
+            />
           </section>
 
           <section className="dashboard-columns">

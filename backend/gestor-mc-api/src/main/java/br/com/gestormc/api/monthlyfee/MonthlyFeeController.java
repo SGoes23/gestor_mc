@@ -20,10 +20,14 @@ public class MonthlyFeeController {
 
     private final MonthlyFeeRepository monthlyFeeRepository;
     private final MemberRepository memberRepository;
+    private final MonthlyFeeService monthlyFeeService;
 
-    public MonthlyFeeController(MonthlyFeeRepository monthlyFeeRepository, MemberRepository memberRepository) {
+    public MonthlyFeeController(MonthlyFeeRepository monthlyFeeRepository,
+                                MemberRepository memberRepository,
+                                MonthlyFeeService monthlyFeeService) {
         this.monthlyFeeRepository = monthlyFeeRepository;
         this.memberRepository = memberRepository;
+        this.monthlyFeeService = monthlyFeeService;
     }
 
     @PostMapping("/generate")
@@ -87,17 +91,12 @@ public class MonthlyFeeController {
     @PatchMapping("/{monthlyFeeId}/status")
     public MonthlyFeeResponse updateStatus(@PathVariable Long monthlyFeeId,
                                            @RequestBody @Valid UpdateMonthlyFeeStatusRequest request) {
-        MonthlyFee fee = monthlyFeeRepository.findById(monthlyFeeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade nao encontrada"));
-
-        fee.setStatus(request.status());
-        if (request.status() == MonthlyFeeStatus.PAGO) {
-            fee.setPaymentDate(request.paymentDate() != null ? request.paymentDate() : LocalDate.now());
-        } else {
-            fee.setPaymentDate(null);
-        }
-
-        return toResponse(monthlyFeeRepository.save(fee));
+        MonthlyFee fee = monthlyFeeService.updateStatus(
+                monthlyFeeId,
+                request.status(),
+                request.paymentDate()
+        );
+        return toResponse(fee);
     }
 
     private MonthlyFeeResponse toResponse(MonthlyFee fee) {
