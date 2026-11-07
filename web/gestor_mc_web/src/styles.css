@@ -121,13 +121,20 @@ code { font-family: "Cascadia Code", Consolas, monospace; }
 .icon-button.danger:hover { color: var(--red); background: var(--red-soft); border-color: #f1cbc7; }
 
 .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.metric-card { min-height: 178px; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 3px 12px rgba(25, 21, 15, 0.03); }
-.metric-card .metric-icon { display: grid; width: 42px; height: 42px; place-items: center; margin-bottom: 20px; color: #5c5141; background: #f1ede5; border-radius: 8px; }
+.metric-card { display: block; min-height: 178px; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 3px 12px rgba(25, 21, 15, 0.03); }
+.metric-card-link { transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+.metric-card-link:hover { transform: translateY(-3px); border-color: #c8b792; box-shadow: 0 14px 30px rgba(25, 21, 15, 0.1); }
+.metric-card-link:focus-visible { outline: 3px solid rgba(212, 148, 37, 0.38); outline-offset: 3px; }
+.metric-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.metric-card .metric-icon { display: grid; width: 42px; height: 42px; place-items: center; color: #5c5141; background: #f1ede5; border-radius: 8px; }
+.metric-link-hint { display: grid; width: 27px; height: 27px; place-items: center; color: #8f877c; background: #f6f3ed; border: 1px solid var(--line-soft); border-radius: 50%; opacity: 0.65; transition: opacity 160ms ease, transform 160ms ease; }
+.metric-card-link:hover .metric-link-hint { opacity: 1; transform: translate(2px, -2px); }
 .metric-card > span { display: block; color: var(--muted); font-size: 12px; font-weight: 650; }
 .metric-card > strong { display: block; margin: 5px 0 3px; color: var(--ink); font-family: Georgia, serif; font-size: 35px; font-weight: 600; line-height: 1; }
 .metric-card > small { color: #8b847a; font-size: 11px; }
 .metric-card.metric-dark { color: #fff; background: var(--ink); border-color: var(--ink); }
 .metric-card.metric-dark .metric-icon { color: var(--amber); background: #2c2822; }
+.metric-card.metric-dark .metric-link-hint { color: var(--amber); background: #2c2822; border-color: #40392f; }
 .metric-card.metric-dark > span, .metric-card.metric-dark > small { color: #a8a096; }
 .metric-card.metric-dark > strong { color: #fff; }
 .metric-card.metric-alert { border-top: 3px solid var(--red); }
