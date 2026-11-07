@@ -2,7 +2,9 @@ import { ArrowLeft, Bike, CalendarClock, MapPin, Pencil, Phone, Plus, Trash2, Us
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BloodTypeIndicator } from '../components/BloodTypeIndicator'
-import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader, StatusPill } from '../components/ui'
+import { DataTable } from '../components/DataTable'
+import { ModalFormActions } from '../components/FormControls'
+import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, MonthlyFeeStatusPill, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { formatCurrency, formatDate, monthLabel } from '../lib/format'
@@ -146,8 +148,7 @@ export function MemberDetailPage() {
         {fees.length === 0 ? (
           <p className="muted">Nenhuma mensalidade encontrada para este membro.</p>
         ) : (
-          <div className="table-responsive">
-            <table>
+          <DataTable>
               <thead><tr><th>Referência</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th /></tr></thead>
               <tbody>
                 {fees.map((fee) => (
@@ -156,13 +157,12 @@ export function MemberDetailPage() {
                     <td>{formatCurrency(fee.amount)}</td>
                     <td>{formatDate(fee.dueDate)}</td>
                     <td>{formatDate(fee.paymentDate)}</td>
-                    <td><StatusPill status={fee.status === 'PAGO' ? 'Pago' : 'Pendente'} /></td>
+                    <td><MonthlyFeeStatusPill status={fee.status} /></td>
                     <td>{isDiretoria && <button className="button button-table" onClick={() => void toggleFee(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         )}
       </section>
 
@@ -218,7 +218,7 @@ function MotorcycleForm({
           <label className="field field-span"><span>Placa</span><input value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value.toUpperCase() })} required /></label>
         </div>
         {error && <InlineNotice tone="error">{error}</InlineNotice>}
-        <div className="modal-actions"><button className="button button-ghost" type="button" onClick={onClose}>Cancelar</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar motocicleta'}</button></div>
+        <ModalFormActions onCancel={onClose} submitting={saving} submitLabel="Salvar motocicleta" />
       </form>
     </Modal>
   )

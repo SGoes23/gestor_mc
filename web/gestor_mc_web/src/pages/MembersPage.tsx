@@ -1,7 +1,9 @@
-import { Eye, Pencil, Plus, Search, Trash2, UsersRound } from 'lucide-react'
+import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { BloodTypeIndicator } from '../components/BloodTypeIndicator'
+import { DataTable, MemberIdentity } from '../components/DataTable'
+import { ModalFormActions } from '../components/FormControls'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
@@ -112,9 +114,7 @@ export function MembersPage() {
       )}
 
       {!loading && !error && members.length > 0 && (
-        <section className="table-card">
-          <div className="table-responsive">
-            <table>
+        <DataTable standalone>
               <thead>
                 <tr>
                   <th>Membro</th>
@@ -129,10 +129,7 @@ export function MembersPage() {
                 {members.map((member) => (
                   <tr key={member.id}>
                     <td>
-                      <div className="table-person">
-                        <div className="member-avatar">{member.nickname.slice(0, 2).toUpperCase()}</div>
-                        <div><strong>{member.fullName}</strong><span>“{member.nickname}”</span></div>
-                      </div>
+                      <MemberIdentity fullName={member.fullName} nickname={member.nickname} quoteNickname />
                     </td>
                     <td><strong className="table-primary">{member.phone}</strong><span className="table-secondary">Emergência: {member.emergencyContact}</span></td>
                     <td>{member.role}</td>
@@ -152,9 +149,7 @@ export function MembersPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        </section>
+        </DataTable>
       )}
 
       {editing !== undefined && (
@@ -233,10 +228,11 @@ function MemberForm({
           </label>
         </div>
         {error && <InlineNotice tone="error">{error}</InlineNotice>}
-        <div className="modal-actions">
-          <button className="button button-ghost" type="button" onClick={onClose}>Cancelar</button>
-          <button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Salvando...' : initial ? 'Salvar alterações' : 'Cadastrar membro'}</button>
-        </div>
+        <ModalFormActions
+          onCancel={onClose}
+          submitting={saving}
+          submitLabel={initial ? 'Salvar alterações' : 'Cadastrar membro'}
+        />
       </form>
     </Modal>
   )

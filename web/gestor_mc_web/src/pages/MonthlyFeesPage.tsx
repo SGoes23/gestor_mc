@@ -1,6 +1,8 @@
 import { CheckCircle2, CircleDollarSign, RefreshCw, Sparkles, WalletCards } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { EmptyState, ErrorState, InlineNotice, LoadingState, PageHeader, StatusPill } from '../components/ui'
+import { DataTable, MemberIdentity } from '../components/DataTable'
+import { MonthField } from '../components/FormControls'
+import { EmptyState, ErrorState, InlineNotice, LoadingState, MonthlyFeeStatusPill, PageHeader } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { currentMonth, formatCurrency, formatDate, monthLabel } from '../lib/format'
@@ -70,7 +72,7 @@ export function MonthlyFeesPage() {
 
       <section className="fees-control-panel">
         <form className="fees-form" onSubmit={generate}>
-          <label className="field"><span>Mês de referência</span><input type="month" value={month} onChange={(e) => { setMonth(e.target.value); setDueDate(`${e.target.value}-10`) }} required /></label>
+          <MonthField value={month} onChange={(value) => { setMonth(value); setDueDate(`${value}-10`) }} />
           {isDiretoria && <label className="field"><span>Valor padrão</span><input type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required /></label>}
           {isDiretoria && <label className="field"><span>Vencimento</span><input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required /></label>}
           <button className="button button-secondary consult-button" type="button" onClick={() => void load(month)}>Consultar</button>
@@ -90,23 +92,21 @@ export function MonthlyFeesPage() {
         {!loading && error && fees.length === 0 && <ErrorState message={error} onRetry={() => void load(month)} />}
         {!loading && !error && fees.length === 0 && <EmptyState title="Nenhuma mensalidade" description="Consulte outro mês ou gere as mensalidades para o período selecionado." />}
         {!loading && fees.length > 0 && (
-          <div className="table-responsive">
-            <table>
+          <DataTable>
               <thead><tr><th>Membro</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th /></tr></thead>
               <tbody>
                 {fees.map((fee) => (
                   <tr key={fee.id}>
-                    <td><div className="table-person"><div className="member-mini-avatar">{fee.memberFullName.slice(0, 1)}</div><div><strong>{fee.memberFullName}</strong><span>{fee.memberNickname}</span></div></div></td>
+                    <td><MemberIdentity fullName={fee.memberFullName} nickname={fee.memberNickname} compact /></td>
                     <td><strong>{formatCurrency(fee.amount)}</strong></td>
                     <td>{formatDate(fee.dueDate)}</td>
                     <td>{formatDate(fee.paymentDate)}</td>
-                    <td><StatusPill status={fee.status === 'PAGO' ? 'Pago' : 'Pendente'} /></td>
+                    <td><MonthlyFeeStatusPill status={fee.status} /></td>
                     <td>{isDiretoria && <button className="button button-table" disabled={working} onClick={() => void toggleStatus(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         )}
       </section>
     </div>

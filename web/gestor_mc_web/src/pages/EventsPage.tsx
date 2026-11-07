@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader } from '../components/ui'
+import { ModalFormActions } from '../components/FormControls'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { eventTypeLabel, formatDate } from '../lib/format'
@@ -140,7 +141,11 @@ function EventForm({ initial, onClose, onSave }: { initial: ClubEvent | null; on
           <label className="field field-span"><span>Descrição</span><textarea rows={4} value={form.description} onChange={(e) => update('description', e.target.value)} required /></label>
         </div>
         {error && <InlineNotice tone="error">{error}</InlineNotice>}
-        <div className="modal-actions"><button className="button button-ghost" type="button" onClick={onClose}>Cancelar</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Salvando...' : initial ? 'Salvar alterações' : 'Cadastrar evento'}</button></div>
+        <ModalFormActions
+          onCancel={onClose}
+          submitting={saving}
+          submitLabel={initial ? 'Salvar alterações' : 'Cadastrar evento'}
+        />
       </form>
     </Modal>
   )

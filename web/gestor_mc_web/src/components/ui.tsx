@@ -124,6 +124,10 @@ export function StatusPill({ status }: { status: string }) {
   return <span className={`status-pill status-${tone}`}>{status}</span>
 }
 
+export function MonthlyFeeStatusPill({ status }: { status: 'PAGO' | 'PENDENTE' }) {
+  return <StatusPill status={status === 'PAGO' ? 'Pago' : 'Pendente'} />
+}
+
 export function InlineNotice({ tone = 'success', children }: { tone?: 'success' | 'error'; children: ReactNode }) {
   return <div className={`inline-notice notice-${tone}`}>{children}</div>
 }
