@@ -12,7 +12,7 @@ Aplicacao web responsiva do Leopardos Moto Clube, criada com React, TypeScript e
 Copie `.env.example` para `.env` caso precise alterar o endereco da API:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8081
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ## Executar localmente
@@ -33,6 +33,23 @@ Acesse `http://localhost:5173`.
 npm.cmd run build
 npm.cmd run preview
 ```
+
+## Docker
+
+Para gerar a imagem de producao e publicar o frontend em `http://localhost`:
+
+```powershell
+docker compose up -d --build
+```
+
+O endereco da API e incorporado ao bundle durante o build. Para usar outro endereco:
+
+```powershell
+$env:VITE_API_BASE_URL="https://api.exemplo.com"
+docker compose up -d --build --force-recreate
+```
+
+O container disponibiliza o healthcheck em `http://localhost/health` e o Nginx usa fallback para as rotas do React Router.
 
 ## Funcionalidades
 
