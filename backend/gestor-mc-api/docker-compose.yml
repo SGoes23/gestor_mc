@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${DB_USER:-gestor_mc}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-gestor_mc_local}
     ports:
-      - "${DB_EXTERNAL_PORT:-5433}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-key-with-at-least-32-characters}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
     ports:
-      - "${API_PORT:-8081}:8080"
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
