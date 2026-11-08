@@ -25,7 +25,7 @@ jobs:
           cache: maven
 
       - name: Build backend
-        run: mvn -B -DskipTests package
+        run: mvn -B verify
 
   flutter-analyze:
     runs-on: ubuntu-latest

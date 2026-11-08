@@ -11,7 +11,10 @@ class AuthSession {
     required this.profile,
   });
 
-  bool get isDiretoria => profile.toUpperCase() == 'DIRETORIA';
+  bool get isDiretoria {
+    final normalized = profile.toUpperCase();
+    return normalized == 'DIRETORIA' || normalized == 'ADMINISTRATIVO';
+  }
 }
 
 class AuthService {
