@@ -57,10 +57,15 @@ class _DashboardPageState extends State<DashboardPage> {
       () => widget.eventService.listEvents(widget.session.token),
       'Nao foi possivel carregar reunioes',
     );
+    final cashFuture = _loadSection(
+      () => widget.monthlyFeeService.getCashBalance(widget.session.token),
+      'Nao foi possivel carregar o caixa',
+    );
 
     final members = await membersFuture;
     final monthlyFees = await monthlyFeesFuture;
     final events = await eventsFuture;
+    final cash = await cashFuture;
 
     if (!mounted) return;
     setState(() {
@@ -68,6 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
         members: members,
         monthlyFees: monthlyFees,
         events: events,
+        cash: cash,
         referenceDate: now,
       );
       _loading = false;
@@ -172,13 +178,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   value: '${data.monthlyMeetings}',
                   subtitle: 'conforme o calendario',
                 ),
-              const Card(
-                child: ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Caixa do clube'),
-                  subtitle: Text('Aguardando o registro de movimentacoes financeiras.'),
+              if (data.cash.error != null)
+                _UnavailableCard(title: 'Caixa do clube', message: data.cash.error!)
+              else
+                _MetricCard(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'Caixa do clube',
+                  value: 'R\$ ${data.cash.data!.toStringAsFixed(2)}',
+                  subtitle: 'Saldo de mensalidades lancadas',
                 ),
-              ),
               const SizedBox(height: 16),
               Text('Mensalidades em atraso', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -222,12 +230,14 @@ class _DashboardData {
     required this.members,
     required this.monthlyFees,
     required this.events,
+    required this.cash,
     required this.referenceDate,
   });
 
   final _SectionData<List<MemberSummary>> members;
   final _SectionData<List<MonthlyFeeItem>> monthlyFees;
   final _SectionData<List<ClubEvent>> events;
+  final _SectionData<double> cash;
   final DateTime referenceDate;
 
   int get activeMembers {

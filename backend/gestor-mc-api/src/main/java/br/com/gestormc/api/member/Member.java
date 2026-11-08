@@ -39,6 +39,12 @@ public class Member {
     @Column(nullable = false)
     private String address;
 
+    @Column(name = "postal_code", nullable = false, length = 8)
+    private String postalCode;
+
+    @Column(nullable = false, length = 11)
+    private String cpf;
+
     @Column(name = "member_role", nullable = false)
     private String role;
 
@@ -50,13 +56,16 @@ public class Member {
     }
 
     public Member(String fullName, String nickname, String phone, BloodType bloodType,
-                  String emergencyContact, String address, String role, MemberStatus status) {
+                  String emergencyContact, String address, String postalCode, String cpf,
+                  String role, MemberStatus status) {
         this.fullName = fullName;
         this.nickname = nickname;
         this.phone = phone;
         this.bloodType = bloodType;
         this.emergencyContact = emergencyContact;
         this.address = address;
+        this.postalCode = postalCode;
+        this.cpf = cpf;
         this.role = role;
         this.status = status;
     }
@@ -111,6 +120,22 @@ public class Member {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
 
     public String getRole() {

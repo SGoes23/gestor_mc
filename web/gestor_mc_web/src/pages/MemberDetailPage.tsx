@@ -4,10 +4,11 @@ import { Link, useParams } from 'react-router-dom'
 import { BloodTypeIndicator } from '../components/BloodTypeIndicator'
 import { DataTable } from '../components/DataTable'
 import { ModalFormActions } from '../components/FormControls'
+import { MonthlyFeePaymentModal } from '../components/MonthlyFeePaymentModal'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, MonthlyFeeStatusPill, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import { formatCurrency, formatDate, monthLabel } from '../lib/format'
+import { formatCpf, formatCurrency, formatDate, formatPhone, formatPostalCode, monthLabel } from '../lib/format'
 import type { MemberDetail, Motorcycle, MotorcyclePayload, MonthlyFee } from '../types'
 
 export function MemberDetailPage() {
@@ -20,6 +21,8 @@ export function MemberDetailPage() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [editingMotorcycle, setEditingMotorcycle] = useState<Motorcycle | null | undefined>(undefined)
+  const [feeToPay, setFeeToPay] = useState<MonthlyFee | null>(null)
+  const [updatingFee, setUpdatingFee] = useState(false)
 
   const load = useCallback(async () => {
     if (!session || !Number.isFinite(memberId)) return
@@ -65,20 +68,25 @@ export function MemberDetailPage() {
     }
   }
 
-  const toggleFee = async (fee: MonthlyFee) => {
+  const toggleFee = async (fee: MonthlyFee, addToCash = false) => {
     if (!session || !isDiretoria) return
     const status = fee.status === 'PAGO' ? 'PENDENTE' : 'PAGO'
+    setUpdatingFee(true)
     try {
       await api.updateMonthlyFeeStatus(
         session.token,
         fee.id,
         status,
         status === 'PAGO' ? new Date().toISOString().slice(0, 10) : null,
+        addToCash,
       )
-      setNotice('Status da mensalidade atualizado.')
+      setNotice(addToCash ? 'Mensalidade marcada como paga e valor lançado no caixa.' : 'Status da mensalidade atualizado.')
+      setFeeToPay(null)
       await load()
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Falha ao atualizar mensalidade.')
+    } finally {
+      setUpdatingFee(false)
     }
   }
 
@@ -106,9 +114,10 @@ export function MemberDetailPage() {
             <div><h2>{member.nickname}</h2><span>{member.role}</span></div>
           </div>
           <div className="profile-details">
-            <div><Phone size={18} /><span><small>Telefone</small><strong>{member.phone}</strong></span></div>
-            <div><UserRound size={18} /><span><small>Emergência</small><strong>{member.emergencyContact}</strong></span></div>
-            <div><MapPin size={18} /><span><small>Endereço</small><strong>{member.address}</strong></span></div>
+            <div><Phone size={18} /><span><small>Telefone</small><strong>{formatPhone(member.phone)}</strong></span></div>
+            <div><UserRound size={18} /><span><small>Emergência</small><strong>{formatPhone(member.emergencyContact)}</strong></span></div>
+            <div><MapPin size={18} /><span><small>Endereço</small><strong>{member.address} · CEP {formatPostalCode(member.postalCode) || 'Não informado'}</strong></span></div>
+            <div><UserRound size={18} /><span><small>CPF</small><strong>{formatCpf(member.cpf) || 'Não informado'}</strong></span></div>
             <div><BloodTypeIndicator bloodType={member.bloodType} size="profile" /></div>
           </div>
         </article>
@@ -158,7 +167,7 @@ export function MemberDetailPage() {
                     <td>{formatDate(fee.dueDate)}</td>
                     <td>{formatDate(fee.paymentDate)}</td>
                     <td><MonthlyFeeStatusPill status={fee.status} /></td>
-                    <td>{isDiretoria && <button className="button button-table" onClick={() => void toggleFee(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
+                    <td>{isDiretoria && <button className="button button-table" disabled={updatingFee} onClick={() => fee.status === 'PAGO' ? void toggleFee(fee) : setFeeToPay(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -172,6 +181,14 @@ export function MemberDetailPage() {
           initial={editingMotorcycle}
           onClose={() => setEditingMotorcycle(undefined)}
           onSave={saveMotorcycle}
+        />
+      )}
+      {feeToPay && (
+        <MonthlyFeePaymentModal
+          fee={feeToPay}
+          submitting={updatingFee}
+          onClose={() => setFeeToPay(null)}
+          onConfirm={(addToCash) => void toggleFee(feeToPay, addToCash)}
         />
       )}
     </div>

@@ -2,6 +2,7 @@ package br.com.gestormc.api.attendance;
 
 import br.com.gestormc.api.event.Event;
 import br.com.gestormc.api.member.Member;
+import br.com.gestormc.api.auth.AppUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,8 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.Instant;
 
 @Entity
 @Table(name = "attendances", uniqueConstraints = {
@@ -31,20 +35,34 @@ public class Attendance {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
-    private boolean confirmed;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AttendanceStatus status;
 
-    @Column(nullable = false)
-    private boolean attended;
+    @Column(length = 500)
+    private String notes;
+
+    @Column(name = "checked_at")
+    private Instant checkedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checked_by_user_id")
+    private AppUser checkedBy;
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     public Attendance() {
     }
 
-    public Attendance(Event event, Member member, boolean confirmed, boolean attended) {
+    public Attendance(Event event, Member member, AttendanceStatus status) {
         this.event = event;
         this.member = member;
-        this.confirmed = confirmed;
-        this.attended = attended;
+        this.status = status;
+        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -67,19 +85,35 @@ public class Attendance {
         this.member = member;
     }
 
-    public boolean isConfirmed() {
-        return confirmed;
+    public AttendanceStatus getStatus() {
+        return status;
     }
 
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
+    public String getNotes() {
+        return notes;
     }
 
-    public boolean isAttended() {
-        return attended;
+    public Instant getCheckedAt() {
+        return checkedAt;
     }
 
-    public void setAttended(boolean attended) {
-        this.attended = attended;
+    public AppUser getCheckedBy() {
+        return checkedBy;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void update(AttendanceStatus status, String notes, AppUser checkedBy) {
+        this.status = status;
+        this.notes = notes == null || notes.isBlank() ? null : notes.trim();
+        this.checkedBy = checkedBy;
+        this.checkedAt = Instant.now();
+        this.updatedAt = this.checkedAt;
     }
 }

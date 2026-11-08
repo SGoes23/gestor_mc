@@ -7,7 +7,7 @@ import { ModalFormActions } from '../components/FormControls'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import { bloodTypeLabel } from '../lib/format'
+import { bloodTypeLabel, formatCpf, formatPhone, formatPostalCode } from '../lib/format'
 import type { AccessProfile, BloodType, MemberPayload, MemberStatus, MemberSummary } from '../types'
 
 const emptyMember: MemberPayload = {
@@ -17,6 +17,8 @@ const emptyMember: MemberPayload = {
   bloodType: 'O_POSITIVE',
   emergencyContact: '',
   address: '',
+  postalCode: '',
+  cpf: '',
   role: 'Membro',
   status: 'ATIVO',
   email: '',
@@ -135,7 +137,7 @@ export function MembersPage() {
                     <td>
                       <MemberIdentity fullName={member.fullName} nickname={member.nickname} quoteNickname />
                     </td>
-                    <td><strong className="table-primary">{member.phone}</strong><span className="table-secondary">Emergência: {member.emergencyContact}</span></td>
+                    <td><strong className="table-primary">{formatPhone(member.phone)}</strong><span className="table-secondary">Emergência: {formatPhone(member.emergencyContact)}</span></td>
                     <td>{member.role}</td>
                     <td><span className="profile-badge">{member.profile === 'ADMINISTRATIVO' ? 'Administrativo' : member.profile === 'DIRETORIA' ? 'Diretoria' : 'Membro'}</span></td>
                     <td><BloodTypeIndicator bloodType={member.bloodType} /></td>
@@ -180,10 +182,12 @@ function MemberForm({
   const [form, setForm] = useState<MemberPayload>(initial ? {
     fullName: initial.fullName,
     nickname: initial.nickname,
-    phone: initial.phone,
+    phone: formatPhone(initial.phone),
     bloodType: initial.bloodType,
-    emergencyContact: initial.emergencyContact,
+    emergencyContact: formatPhone(initial.emergencyContact),
     address: initial.address,
+    postalCode: formatPostalCode(initial.postalCode),
+    cpf: formatCpf(initial.cpf),
     role: initial.role,
     status: initial.status,
     email: initial.email ?? '',
@@ -220,9 +224,11 @@ function MemberForm({
         <div className="form-grid two-columns">
           <label className="field"><span>Nome completo</span><input value={form.fullName} onChange={(e) => update('fullName', e.target.value)} required /></label>
           <label className="field"><span>Apelido</span><input value={form.nickname} onChange={(e) => update('nickname', e.target.value)} required /></label>
-          <label className="field"><span>Telefone</span><input value={form.phone} onChange={(e) => update('phone', e.target.value)} required /></label>
-          <label className="field"><span>Contato de emergência</span><input value={form.emergencyContact} onChange={(e) => update('emergencyContact', e.target.value)} required /></label>
+          <label className="field"><span>Telefone</span><input type="tel" inputMode="numeric" maxLength={15} value={form.phone} onChange={(e) => update('phone', formatPhone(e.target.value))} placeholder="(00) 00000-0000" required /></label>
+          <label className="field"><span>Contato de emergência</span><input type="tel" inputMode="numeric" maxLength={15} value={form.emergencyContact} onChange={(e) => update('emergencyContact', formatPhone(e.target.value))} placeholder="(00) 00000-0000" required /></label>
           <label className="field field-span"><span>Endereço</span><input value={form.address} onChange={(e) => update('address', e.target.value)} required /></label>
+          <label className="field"><span>CEP <small>(opcional)</small></span><input inputMode="numeric" maxLength={9} value={form.postalCode} onChange={(e) => update('postalCode', formatPostalCode(e.target.value))} placeholder="00000-000" pattern="\d{5}-\d{3}" /></label>
+          <label className="field"><span>CPF <small>(opcional)</small></span><input inputMode="numeric" maxLength={14} value={form.cpf} onChange={(e) => update('cpf', formatCpf(e.target.value))} placeholder="000.000.000-00" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" /></label>
           <label className="field"><span>Cargo</span><input value={form.role} onChange={(e) => update('role', e.target.value)} required /></label>
           <label className="field"><span>Perfil de acesso</span>
             <select value={form.profile} onChange={(e) => update('profile', e.target.value as AccessProfile)}>

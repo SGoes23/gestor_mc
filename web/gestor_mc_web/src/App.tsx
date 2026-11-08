@@ -3,6 +3,8 @@ import { AppShell } from './components/AppShell'
 import { useAuth } from './context/AuthContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { DefaultersPage } from './pages/DefaultersPage'
+import { AttendancesPage } from './pages/AttendancesPage'
+import { EventDetailPage } from './pages/EventDetailPage'
 import { EventsPage } from './pages/EventsPage'
 import { LoginPage } from './pages/LoginPage'
 import { MemberDetailPage } from './pages/MemberDetailPage'
@@ -23,6 +25,8 @@ export default function App() {
         <Route path="membros" element={<MembersPage />} />
         <Route path="membros/:id" element={<MemberDetailPage />} />
         <Route path="eventos" element={<EventsPage />} />
+        <Route path="eventos/:id" element={<EventDetailPage />} />
+        <Route path="presencas" element={<AttendancesPage />} />
         <Route path="mensalidades" element={<MonthlyFeesPage />} />
         <Route path="inadimplentes" element={<DefaultersPage />} />
       </Route>

@@ -12,13 +12,14 @@ import { MetricLinkCard } from '../components/MetricLinkCard'
 import { ErrorState, LoadingState, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import { currentMonth, daysOverdue, eventTypeLabel, formatCurrency, formatDate, monthLabel } from '../lib/format'
+import { currentDate, currentMonth, daysOverdue, eventTypeLabel, formatCurrency, formatDate, monthLabel } from '../lib/format'
 import type { ClubEvent, MemberSummary, MonthlyFee } from '../types'
 
 interface DashboardData {
   members: MemberSummary[]
   events: ClubEvent[]
   defaulters: MonthlyFee[]
+  cashBalance: number
 }
 
 export function DashboardPage() {
@@ -27,18 +28,20 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const month = currentMonth()
+  const today = currentDate()
 
   const load = useCallback(async () => {
     if (!session) return
     setLoading(true)
     setError('')
     try {
-      const [members, events, defaulters] = await Promise.all([
+      const [members, events, defaulters, cash] = await Promise.all([
         api.listMembers(session.token),
         api.listEvents(session.token),
         api.listDefaulters(session.token, month),
+        api.getCashBalance(session.token),
       ])
-      setData({ members, events, defaulters })
+      setData({ members, events, defaulters, cashBalance: cash.balance })
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Falha ao carregar o dashboard.')
     } finally {
@@ -50,10 +53,12 @@ export function DashboardPage() {
 
   const metrics = useMemo(() => {
     const activeMembers = data?.members.filter((member) => member.status === 'ATIVO').length ?? 0
-    const meetings = data?.events.filter((event) => event.type === 'REUNIAO' && event.eventDate.startsWith(month)).length ?? 0
+    const monthlyEvents = data?.events.filter(
+      (event) => event.eventDate.startsWith(month) && event.eventDate >= today,
+    ).length ?? 0
     const overdueTotal = data?.defaulters.reduce((total, fee) => total + fee.amount, 0) ?? 0
-    return { activeMembers, meetings, overdueTotal }
-  }, [data, month])
+    return { activeMembers, monthlyEvents, overdueTotal }
+  }, [data, month, today])
 
   const upcomingEvents = useMemo(
     () => (data?.events ?? [])
@@ -93,8 +98,8 @@ export function DashboardPage() {
             <MetricLinkCard
               to="/eventos"
               icon={<CalendarDays size={24} />}
-              title="Reuniões no mês"
-              value={metrics.meetings}
+              title="Próximos eventos no mês"
+              value={metrics.monthlyEvents}
               subtitle="conforme o calendário"
             />
             <MetricLinkCard
@@ -109,8 +114,8 @@ export function DashboardPage() {
               to="/mensalidades"
               icon={<CircleDollarSign size={24} />}
               title="Caixa do clube"
-              value="Em breve"
-              subtitle="Acessar mensalidades"
+              value={formatCurrency(data.cashBalance)}
+              subtitle="Saldo de mensalidades lançadas"
               compactValue
             />
           </section>

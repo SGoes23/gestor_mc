@@ -45,6 +45,10 @@ class MemberControllerTest {
         assertThat(user.getValue().getMember()).isNotNull();
         assertThat(response.email()).isEqualTo("admin@clube.com");
         assertThat(response.profile()).isEqualTo(AccessProfile.ADMINISTRATIVO);
+        assertThat(response.phone()).isEqualTo("11999999999");
+        assertThat(response.emergencyContact()).isEqualTo("11888888888");
+        assertThat(response.postalCode()).isEqualTo("01001000");
+        assertThat(response.cpf()).isEqualTo("52998224725");
     }
 
     @Test
@@ -66,6 +70,8 @@ class MemberControllerTest {
                 BloodType.O_POSITIVE,
                 "José - 11888888888",
                 "Rua Central, 10",
+                "01001000",
+                "52998224725",
                 "Tesoureira",
                 MemberStatus.ATIVO
         );
@@ -93,6 +99,8 @@ class MemberControllerTest {
                 BloodType.O_POSITIVE,
                 "José - 11888888888",
                 "Rua Central, 10",
+                "01001-000",
+                "529.982.247-25",
                 "Tesoureira",
                 MemberStatus.ATIVO,
                 "admin@clube.com",

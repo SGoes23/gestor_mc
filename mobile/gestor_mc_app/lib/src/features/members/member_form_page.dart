@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../core/input_masks.dart';
 import 'member_models.dart';
 
 class MemberFormPage extends StatefulWidget {
@@ -22,6 +24,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
   late final TextEditingController _phoneController;
   late final TextEditingController _emergencyController;
   late final TextEditingController _addressController;
+  late final TextEditingController _postalCodeController;
+  late final TextEditingController _cpfController;
   late final TextEditingController _roleController;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
@@ -36,9 +40,11 @@ class _MemberFormPageState extends State<MemberFormPage> {
     final initial = widget.initial;
     _nameController = TextEditingController(text: initial?.fullName ?? '');
     _nicknameController = TextEditingController(text: initial?.nickname ?? '');
-    _phoneController = TextEditingController(text: initial?.phone ?? '');
-    _emergencyController = TextEditingController(text: initial?.emergencyContact ?? '');
+    _phoneController = TextEditingController(text: formatPhoneValue(initial?.phone ?? ''));
+    _emergencyController = TextEditingController(text: formatPhoneValue(initial?.emergencyContact ?? ''));
     _addressController = TextEditingController(text: initial?.address ?? '');
+    _postalCodeController = TextEditingController(text: _formatPostalCode(initial?.postalCode ?? ''));
+    _cpfController = TextEditingController(text: formatCpfValue(initial?.cpf ?? ''));
     _roleController = TextEditingController(text: initial?.role ?? 'Membro');
     _emailController = TextEditingController(text: initial?.email ?? '');
     _passwordController = TextEditingController();
@@ -54,6 +60,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _phoneController.dispose();
     _emergencyController.dispose();
     _addressController.dispose();
+    _postalCodeController.dispose();
+    _cpfController.dispose();
     _roleController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -73,6 +81,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
         bloodType: _bloodType,
         emergencyContact: _emergencyController.text.trim(),
         address: _addressController.text.trim(),
+        postalCode: _postalCodeController.text.trim(),
+        cpf: _cpfController.text.trim(),
         role: _roleController.text.trim(),
         status: _status,
         email: _emailController.text.trim(),
@@ -109,6 +119,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, PhoneInputFormatter()],
               decoration: const InputDecoration(labelText: 'Telefone'),
               validator: _required,
             ),
@@ -135,6 +147,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _emergencyController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, PhoneInputFormatter()],
               decoration: const InputDecoration(labelText: 'Contato de emergencia'),
               validator: _required,
             ),
@@ -143,6 +157,20 @@ class _MemberFormPageState extends State<MemberFormPage> {
               controller: _addressController,
               decoration: const InputDecoration(labelText: 'Endereco'),
               validator: _required,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _postalCodeController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, PostalCodeInputFormatter()],
+              decoration: const InputDecoration(labelText: 'CEP (opcional)', hintText: '00000-000'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _cpfController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, CpfInputFormatter()],
+              decoration: const InputDecoration(labelText: 'CPF (opcional)', hintText: '000.000.000-00'),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -211,6 +239,13 @@ class _MemberFormPageState extends State<MemberFormPage> {
       return 'Campo obrigatorio';
     }
     return null;
+  }
+
+  String _formatPostalCode(String value) {
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (digits.length <= 5) return digits;
+    final limited = digits.substring(0, digits.length > 8 ? 8 : digits.length);
+    return '${limited.substring(0, 5)}-${limited.substring(5)}';
   }
 
   String _bloodTypeLabel(BloodType type) {

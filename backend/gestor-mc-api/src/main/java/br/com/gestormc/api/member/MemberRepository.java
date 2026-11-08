@@ -6,4 +6,8 @@ import java.util.List;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	List<Member> findByFullNameContainingIgnoreCaseOrNicknameContainingIgnoreCase(String fullName, String nickname);
+
+    List<Member> findByStatusOrderByFullNameAsc(MemberStatus status);
+
+    long countByStatus(MemberStatus status);
 }

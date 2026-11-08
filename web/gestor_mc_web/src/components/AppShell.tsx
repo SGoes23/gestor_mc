@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ClipboardCheck,
   ChevronRight,
   Gauge,
   LogOut,
@@ -17,6 +18,7 @@ const navigation = [
   { to: '/', label: 'Visão geral', icon: Gauge, end: true },
   { to: '/membros', label: 'Membros', icon: UsersRound },
   { to: '/eventos', label: 'Eventos', icon: CalendarDays },
+  { to: '/presencas', label: 'Presenças', icon: ClipboardCheck },
   { to: '/mensalidades', label: 'Mensalidades', icon: ReceiptText },
   { to: '/inadimplentes', label: 'Inadimplentes', icon: ShieldAlert },
 ]

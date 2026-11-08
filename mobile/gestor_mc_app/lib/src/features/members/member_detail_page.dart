@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/input_masks.dart';
 import '../auth/auth_service.dart';
 import '../monthly_fees/member_fee_history_page.dart';
 import '../monthly_fees/monthly_fee_service.dart';
@@ -164,10 +165,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                               Text(member.fullName, style: Theme.of(context).textTheme.titleLarge),
                               const SizedBox(height: 8),
                               Text('Apelido: ${member.nickname}'),
-                              Text('Telefone: ${member.phone}'),
+                              Text('Telefone: ${formatPhoneValue(member.phone)}'),
                               Text('Sanguineo: ${_bloodTypeLabel(member.bloodType)}'),
-                              Text('Emergencia: ${member.emergencyContact}'),
-                              Text('Endereco: ${member.address}'),
+                              Text('Emergencia: ${formatPhoneValue(member.emergencyContact)}'),
+                              Text('Endereco: ${member.address} | CEP: ${member.postalCode.isEmpty ? 'Nao informado' : member.postalCode}'),
+                              Text('CPF: ${member.cpf.isEmpty ? 'Nao informado' : formatCpfValue(member.cpf)}'),
                               Text('Cargo: ${member.role}'),
                               Text('Status: ${member.status == MemberStatus.ativo ? 'Ativo' : 'Inativo'}'),
                               const SizedBox(height: 12),

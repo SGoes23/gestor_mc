@@ -1,5 +1,7 @@
 package br.com.gestormc.api.monthlyfee;
 
+import br.com.gestormc.api.cash.CashMovement;
+import br.com.gestormc.api.cash.CashMovementRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,21 +13,36 @@ import java.time.LocalDate;
 public class MonthlyFeeService {
 
     private final MonthlyFeeRepository monthlyFeeRepository;
+    private final CashMovementRepository cashMovementRepository;
 
-    public MonthlyFeeService(MonthlyFeeRepository monthlyFeeRepository) {
+    public MonthlyFeeService(MonthlyFeeRepository monthlyFeeRepository,
+                             CashMovementRepository cashMovementRepository) {
         this.monthlyFeeRepository = monthlyFeeRepository;
+        this.cashMovementRepository = cashMovementRepository;
     }
 
     @Transactional
-    public MonthlyFee updateStatus(Long monthlyFeeId, MonthlyFeeStatus status, LocalDate paymentDate) {
+    public MonthlyFee updateStatus(Long monthlyFeeId, MonthlyFeeStatus status, LocalDate paymentDate,
+                                   boolean addToCash) {
         MonthlyFee fee = monthlyFeeRepository.findByIdWithMember(monthlyFeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade nao encontrada"));
 
         fee.setStatus(status);
         if (status == MonthlyFeeStatus.PAGO) {
-            fee.setPaymentDate(paymentDate != null ? paymentDate : LocalDate.now());
+            LocalDate effectivePaymentDate = paymentDate != null ? paymentDate : LocalDate.now();
+            fee.setPaymentDate(effectivePaymentDate);
+            if (addToCash && !cashMovementRepository.existsByMonthlyFeeId(monthlyFeeId)) {
+                String description = "Mensalidade " + fee.getReferenceMonth() + " - " + fee.getMember().getFullName();
+                cashMovementRepository.save(new CashMovement(
+                        fee,
+                        fee.getAmount(),
+                        effectivePaymentDate,
+                        description
+                ));
+            }
         } else {
             fee.setPaymentDate(null);
+            cashMovementRepository.deleteByMonthlyFeeId(monthlyFeeId);
         }
 
         return fee;

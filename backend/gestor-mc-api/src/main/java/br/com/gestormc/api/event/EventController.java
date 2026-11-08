@@ -1,9 +1,12 @@
 package br.com.gestormc.api.event;
 
+import br.com.gestormc.api.member.MemberRepository;
+import br.com.gestormc.api.member.MemberStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +26,15 @@ import java.util.List;
 public class EventController {
 
     private final EventRepository eventRepository;
+    private final EventEligibilitySnapshotRepository eligibilitySnapshotRepository;
+    private final MemberRepository memberRepository;
 
-    public EventController(EventRepository eventRepository) {
+    public EventController(EventRepository eventRepository,
+                           EventEligibilitySnapshotRepository eligibilitySnapshotRepository,
+                           MemberRepository memberRepository) {
         this.eventRepository = eventRepository;
+        this.eligibilitySnapshotRepository = eligibilitySnapshotRepository;
+        this.memberRepository = memberRepository;
     }
 
     @GetMapping
@@ -33,8 +42,14 @@ public class EventController {
         return eventRepository.findAllByOrderByEventDateAsc().stream().map(this::toResponse).toList();
     }
 
+    @GetMapping("/{id}")
+    public EventResponse detail(@PathVariable Long id) {
+        return toResponse(findById(id));
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public EventResponse create(@RequestBody @Valid UpsertEventRequest request) {
         Event event = new Event(
                 request.title(),
@@ -43,7 +58,10 @@ public class EventController {
                 request.place(),
                 request.description()
         );
-        return toResponse(eventRepository.save(event));
+        event = eventRepository.save(event);
+        int eligibleMembers = Math.toIntExact(memberRepository.countByStatus(MemberStatus.ATIVO));
+        eligibilitySnapshotRepository.save(new EventEligibilitySnapshot(event, eligibleMembers));
+        return toResponse(event);
     }
 
     @PutMapping("/{id}")

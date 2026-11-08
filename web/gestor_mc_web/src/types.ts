@@ -34,6 +34,8 @@ export interface MemberSummary {
   bloodType: BloodType
   emergencyContact: string
   address: string
+  postalCode: string
+  cpf: string
   role: string
   status: MemberStatus
   email: string | null
@@ -62,6 +64,40 @@ export interface ClubEvent {
 }
 
 export type EventPayload = Omit<ClubEvent, 'id'>
+
+export type AttendanceStatus = 'NAO_REGISTRADO' | 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADO'
+
+export interface AttendanceRecord {
+  memberId: number
+  memberFullName: string
+  memberNickname: string
+  memberRole: string
+  memberStatus: MemberStatus
+  status: AttendanceStatus
+  notes: string | null
+  checkedAt: string | null
+  checkedBy: string | null
+}
+
+export interface AttendanceItemPayload {
+  memberId: number
+  status: AttendanceStatus
+  notes: string | null
+}
+
+export interface EventAttendanceSummary {
+  eventId: number
+  eventTitle: string
+  eventType: EventType
+  eventDate: string
+  place: string
+  totalMembers: number
+  present: number
+  absent: number
+  justified: number
+  pending: number
+  attendanceRate: number
+}
 
 export type MonthlyFeeStatus = 'PAGO' | 'PENDENTE'
 
