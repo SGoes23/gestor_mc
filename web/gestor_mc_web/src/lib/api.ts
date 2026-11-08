@@ -110,10 +110,13 @@ export const api = {
     monthlyFeeId: number,
     status: MonthlyFeeStatus,
     paymentDate: string | null,
+    addToCash = false,
   ) =>
     request<MonthlyFee>(`/api/monthly-fees/${monthlyFeeId}/status`, {
       method: 'PATCH',
       token,
-      body: { status, paymentDate },
+      body: { status, paymentDate, addToCash },
     }),
+  getCashBalance: (token: string) =>
+    request<{ balance: number }>('/api/cash/balance', { token }),
 }

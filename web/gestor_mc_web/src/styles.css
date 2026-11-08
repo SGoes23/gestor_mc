@@ -239,6 +239,12 @@ tbody tr:hover td { background: #fcfbf8; }
 .field input:focus, .field select:focus, .field textarea:focus { background: #fff; border-color: #b99452; box-shadow: 0 0 0 3px rgba(212, 148, 37, 0.1); }
 .field-span { grid-column: 1 / -1; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
+.payment-confirmation { padding: 24px; }
+.payment-confirmation > p { margin: 0 0 18px; color: var(--text); font-size: 15px; line-height: 1.6; }
+.payment-confirmation-amount { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 8px; background: #f7f4ee; }
+.payment-confirmation-amount span { color: var(--muted); font-size: 12px; }
+.payment-confirmation-amount strong { color: var(--ink); font-size: 18px; }
+.payment-confirmation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
 
 .back-link { display: inline-flex; width: max-content; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 650; }
 .back-link:hover { color: var(--ink); }

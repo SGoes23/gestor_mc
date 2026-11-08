@@ -19,6 +19,7 @@ interface DashboardData {
   members: MemberSummary[]
   events: ClubEvent[]
   defaulters: MonthlyFee[]
+  cashBalance: number
 }
 
 export function DashboardPage() {
@@ -33,12 +34,13 @@ export function DashboardPage() {
     setLoading(true)
     setError('')
     try {
-      const [members, events, defaulters] = await Promise.all([
+      const [members, events, defaulters, cash] = await Promise.all([
         api.listMembers(session.token),
         api.listEvents(session.token),
         api.listDefaulters(session.token, month),
+        api.getCashBalance(session.token),
       ])
-      setData({ members, events, defaulters })
+      setData({ members, events, defaulters, cashBalance: cash.balance })
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Falha ao carregar o dashboard.')
     } finally {
@@ -109,8 +111,8 @@ export function DashboardPage() {
               to="/mensalidades"
               icon={<CircleDollarSign size={24} />}
               title="Caixa do clube"
-              value="Em breve"
-              subtitle="Acessar mensalidades"
+              value={formatCurrency(data.cashBalance)}
+              subtitle="Saldo de mensalidades lançadas"
               compactValue
             />
           </section>

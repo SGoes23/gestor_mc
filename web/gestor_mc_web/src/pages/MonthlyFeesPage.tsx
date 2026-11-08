@@ -2,6 +2,7 @@ import { CheckCircle2, CircleDollarSign, RefreshCw, Sparkles, WalletCards } from
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { DataTable, MemberIdentity } from '../components/DataTable'
 import { MonthField } from '../components/FormControls'
+import { MonthlyFeePaymentModal } from '../components/MonthlyFeePaymentModal'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, MonthlyFeeStatusPill, PageHeader } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
@@ -18,6 +19,7 @@ export function MonthlyFeesPage() {
   const [working, setWorking] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [feeToPay, setFeeToPay] = useState<MonthlyFee | null>(null)
 
   const load = useCallback(async (referenceMonth = month) => {
     if (!session) return
@@ -46,13 +48,14 @@ export function MonthlyFeesPage() {
     finally { setWorking(false) }
   }
 
-  const toggleStatus = async (fee: MonthlyFee) => {
+  const toggleStatus = async (fee: MonthlyFee, addToCash = false) => {
     if (!session || !isDiretoria) return
     const next = fee.status === 'PAGO' ? 'PENDENTE' : 'PAGO'
     setWorking(true); setError('')
     try {
-      await api.updateMonthlyFeeStatus(session.token, fee.id, next, next === 'PAGO' ? new Date().toISOString().slice(0, 10) : null)
-      setNotice('Status atualizado com sucesso.')
+      await api.updateMonthlyFeeStatus(session.token, fee.id, next, next === 'PAGO' ? new Date().toISOString().slice(0, 10) : null, addToCash)
+      setNotice(addToCash ? 'Mensalidade marcada como paga e valor lançado no caixa.' : 'Status atualizado com sucesso.')
+      setFeeToPay(null)
       await load(month)
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Falha ao atualizar status.') }
     finally { setWorking(false) }
@@ -102,13 +105,21 @@ export function MonthlyFeesPage() {
                     <td>{formatDate(fee.dueDate)}</td>
                     <td>{formatDate(fee.paymentDate)}</td>
                     <td><MonthlyFeeStatusPill status={fee.status} /></td>
-                    <td>{isDiretoria && <button className="button button-table" disabled={working} onClick={() => void toggleStatus(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
+                    <td>{isDiretoria && <button className="button button-table" disabled={working} onClick={() => fee.status === 'PAGO' ? void toggleStatus(fee) : setFeeToPay(fee)}>Marcar {fee.status === 'PAGO' ? 'pendente' : 'pago'}</button>}</td>
                   </tr>
                 ))}
               </tbody>
           </DataTable>
         )}
       </section>
+      {feeToPay && (
+        <MonthlyFeePaymentModal
+          fee={feeToPay}
+          submitting={working}
+          onClose={() => setFeeToPay(null)}
+          onConfirm={(addToCash) => void toggleStatus(feeToPay, addToCash)}
+        />
+      )}
     </div>
   )
 }
