@@ -1,6 +1,7 @@
 package br.com.gestormc.api.auth;
 
 import jakarta.persistence.*;
+import br.com.gestormc.api.member.Member;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,13 +27,22 @@ public class AppUser implements UserDetails {
     @Column(nullable = false)
     private AccessProfile profile;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", unique = true)
+    private Member member;
+
     public AppUser() {
     }
 
     public AppUser(String email, String passwordHash, AccessProfile profile) {
+        this(email, passwordHash, profile, null);
+    }
+
+    public AppUser(String email, String passwordHash, AccessProfile profile, Member member) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.profile = profile;
+        this.member = member;
     }
 
     public Long getId() {
@@ -57,6 +67,14 @@ public class AppUser implements UserDetails {
 
     public void setProfile(AccessProfile profile) {
         this.profile = profile;
+    }
+
+    public Member getMember() {
+        return member;
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
     }
 
     @Override

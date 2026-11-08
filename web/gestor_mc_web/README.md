@@ -12,7 +12,7 @@ Aplicacao web responsiva do Leopardos Moto Clube, criada com React, TypeScript e
 Copie `.env.example` para `.env` caso precise alterar o endereco da API:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8081
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ## Executar localmente

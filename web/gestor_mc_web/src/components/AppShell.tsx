@@ -63,7 +63,7 @@ export function AppShell() {
             <div className="avatar">{session?.email.slice(0, 1).toUpperCase()}</div>
             <div>
               <strong>{session?.email.split('@')[0]}</strong>
-              <span>{session?.profile === 'DIRETORIA' ? 'Diretoria' : 'Membro'}</span>
+              <span>{session?.profile === 'ADMINISTRATIVO' ? 'Administrativo' : session?.profile === 'DIRETORIA' ? 'Diretoria' : 'Membro'}</span>
             </div>
           </div>
           <button className="logout-button" type="button" onClick={logout}>
@@ -84,7 +84,7 @@ export function AppShell() {
             <span>Leopardos MC</span>
             <small>Painel administrativo</small>
           </div>
-          <div className="topbar-role">{session?.profile === 'DIRETORIA' ? 'Acesso diretoria' : 'Acesso membro'}</div>
+          <div className="topbar-role">{session?.profile === 'ADMINISTRATIVO' ? 'Acesso administrativo' : session?.profile === 'DIRETORIA' ? 'Acesso diretoria' : 'Acesso membro'}</div>
         </header>
         <main className="page-content">
           <Outlet />

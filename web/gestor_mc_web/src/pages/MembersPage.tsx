@@ -8,7 +8,7 @@ import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader, 
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { bloodTypeLabel } from '../lib/format'
-import type { BloodType, MemberPayload, MemberStatus, MemberSummary } from '../types'
+import type { AccessProfile, BloodType, MemberPayload, MemberStatus, MemberSummary } from '../types'
 
 const emptyMember: MemberPayload = {
   fullName: '',
@@ -19,6 +19,9 @@ const emptyMember: MemberPayload = {
   address: '',
   role: 'Membro',
   status: 'ATIVO',
+  email: '',
+  password: '',
+  profile: 'MEMBRO',
 }
 
 export function MembersPage() {
@@ -120,6 +123,7 @@ export function MembersPage() {
                   <th>Membro</th>
                   <th>Contato</th>
                   <th>Cargo</th>
+                  <th>Perfil</th>
                   <th>Tipo sanguíneo</th>
                   <th>Status</th>
                   <th><span className="sr-only">Ações</span></th>
@@ -133,6 +137,7 @@ export function MembersPage() {
                     </td>
                     <td><strong className="table-primary">{member.phone}</strong><span className="table-secondary">Emergência: {member.emergencyContact}</span></td>
                     <td>{member.role}</td>
+                    <td><span className="profile-badge">{member.profile === 'ADMINISTRATIVO' ? 'Administrativo' : member.profile === 'DIRETORIA' ? 'Diretoria' : 'Membro'}</span></td>
                     <td><BloodTypeIndicator bloodType={member.bloodType} /></td>
                     <td><StatusPill status={member.status === 'ATIVO' ? 'Ativo' : 'Inativo'} /></td>
                     <td>
@@ -181,6 +186,9 @@ function MemberForm({
     address: initial.address,
     role: initial.role,
     status: initial.status,
+    email: initial.email ?? '',
+    password: '',
+    profile: initial.profile,
   } : emptyMember)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -216,6 +224,15 @@ function MemberForm({
           <label className="field"><span>Contato de emergência</span><input value={form.emergencyContact} onChange={(e) => update('emergencyContact', e.target.value)} required /></label>
           <label className="field field-span"><span>Endereço</span><input value={form.address} onChange={(e) => update('address', e.target.value)} required /></label>
           <label className="field"><span>Cargo</span><input value={form.role} onChange={(e) => update('role', e.target.value)} required /></label>
+          <label className="field"><span>Perfil de acesso</span>
+            <select value={form.profile} onChange={(e) => update('profile', e.target.value as AccessProfile)}>
+              <option value="MEMBRO">Membro</option>
+              <option value="DIRETORIA">Diretoria</option>
+              <option value="ADMINISTRATIVO">Administrativo</option>
+            </select>
+          </label>
+          <label className="field"><span>E-mail de acesso</span><input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} required /></label>
+          <label className="field"><span>{initial ? 'Nova senha (opcional)' : 'Senha inicial'}</span><input type="password" minLength={6} value={form.password ?? ''} onChange={(e) => update('password', e.target.value)} required={!initial} autoComplete="new-password" /></label>
           <label className="field"><span>Tipo sanguíneo</span>
             <select value={form.bloodType} onChange={(e) => update('bloodType', e.target.value as BloodType)}>
               {(Object.entries(bloodTypeLabel) as [BloodType, string][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

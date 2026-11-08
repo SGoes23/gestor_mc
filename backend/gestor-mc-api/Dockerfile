@@ -1,4 +1,4 @@
-FROM maven:3.9.11-eclipse-temurin-25 AS build
+FROM maven:3.9.11-eclipse-temurin-21 AS build
 
 WORKDIR /workspace
 
@@ -8,7 +8,7 @@ RUN mvn --batch-mode --no-transfer-progress dependency:go-offline
 COPY src ./src
 RUN mvn --batch-mode --no-transfer-progress -DskipTests package
 
-FROM eclipse-temurin:25-jre AS runtime
+FROM eclipse-temurin:21-jre AS runtime
 
 WORKDIR /app
 
