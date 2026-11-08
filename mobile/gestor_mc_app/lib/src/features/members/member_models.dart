@@ -1,5 +1,29 @@
 enum MemberStatus { ativo, inativo }
 
+enum MemberAccessProfile { membro, diretoria, administrativo }
+
+String memberAccessProfileToApi(MemberAccessProfile value) {
+  switch (value) {
+    case MemberAccessProfile.membro:
+      return 'MEMBRO';
+    case MemberAccessProfile.diretoria:
+      return 'DIRETORIA';
+    case MemberAccessProfile.administrativo:
+      return 'ADMINISTRATIVO';
+  }
+}
+
+MemberAccessProfile memberAccessProfileFromApi(String value) {
+  switch (value) {
+    case 'DIRETORIA':
+      return MemberAccessProfile.diretoria;
+    case 'ADMINISTRATIVO':
+      return MemberAccessProfile.administrativo;
+    default:
+      return MemberAccessProfile.membro;
+  }
+}
+
 enum BloodType {
   aPositive,
   aNegative,
@@ -102,6 +126,8 @@ class MemberSummary {
   final String address;
   final String role;
   final MemberStatus status;
+  final String? email;
+  final MemberAccessProfile profile;
 
   const MemberSummary({
     required this.id,
@@ -113,6 +139,8 @@ class MemberSummary {
     required this.address,
     required this.role,
     required this.status,
+    required this.email,
+    required this.profile,
   });
 
   factory MemberSummary.fromJson(Map<String, dynamic> json) {
@@ -126,6 +154,8 @@ class MemberSummary {
       address: (json['address'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
+      email: json['email'] as String?,
+      profile: memberAccessProfileFromApi(json['profile'] as String),
     );
   }
 }
@@ -143,6 +173,8 @@ class MemberDetail extends MemberSummary {
     required super.address,
     required super.role,
     required super.status,
+    required super.email,
+    required super.profile,
     required this.motorcycles,
   });
 
@@ -157,6 +189,8 @@ class MemberDetail extends MemberSummary {
       address: (json['address'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
+      email: json['email'] as String?,
+      profile: memberAccessProfileFromApi(json['profile'] as String),
       motorcycles: (json['motorcycles'] as List<dynamic>)
           .map((item) => Motorcycle.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -173,6 +207,9 @@ class UpsertMemberPayload {
   final String address;
   final String role;
   final MemberStatus status;
+  final String email;
+  final String? password;
+  final MemberAccessProfile profile;
 
   const UpsertMemberPayload({
     required this.fullName,
@@ -183,6 +220,9 @@ class UpsertMemberPayload {
     required this.address,
     required this.role,
     required this.status,
+    required this.email,
+    this.password,
+    required this.profile,
   });
 
   Map<String, dynamic> toJson() {
@@ -195,6 +235,9 @@ class UpsertMemberPayload {
       'address': address,
       'role': role,
       'status': memberStatusToApi(status),
+      'email': email,
+      'password': password,
+      'profile': memberAccessProfileToApi(profile),
     };
   }
 }

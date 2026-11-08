@@ -14,7 +14,6 @@ Copie `.env.example` para `.env` caso precise alterar o endereco da API:
 ```env
 VITE_API_BASE_URL=http://localhost:8080
 VITE_LOG_LEVEL=debug
-```
 
 Os logs estruturados sao exibidos no console do navegador e os 200 registros mais recentes ficam armazenados em `localStorage` com a chave `gestor-mc-frontend-logs`. Em producao, use `VITE_LOG_LEVEL=info`; os valores aceitos sao `debug`, `info`, `warn` e `error`.
 

@@ -1,4 +1,4 @@
-export type AccessProfile = 'DIRETORIA' | 'MEMBRO'
+export type AccessProfile = 'DIRETORIA' | 'ADMINISTRATIVO' | 'MEMBRO'
 
 export interface AuthSession {
   token: string
@@ -36,13 +36,18 @@ export interface MemberSummary {
   address: string
   role: string
   status: MemberStatus
+  email: string | null
+  profile: AccessProfile
 }
 
 export interface MemberDetail extends MemberSummary {
   motorcycles: Motorcycle[]
 }
 
-export type MemberPayload = Omit<MemberSummary, 'id'>
+export type MemberPayload = Omit<MemberSummary, 'id' | 'email'> & {
+  email: string
+  password?: string
+}
 export type MotorcyclePayload = Omit<Motorcycle, 'id'>
 
 export type EventType = 'ROLE' | 'EVENTO' | 'REUNIAO'

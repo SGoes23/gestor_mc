@@ -65,9 +65,9 @@ docker compose up --build -d
 
 Servicos e credenciais padrao:
 
-- API: `http://localhost:8081`
-- Healthcheck: `http://localhost:8081/api/health`
-- PostgreSQL: `localhost:5433`
+- API: `http://localhost:8080`
+- Healthcheck: `http://localhost:8080/api/health`
+- PostgreSQL: `localhost:5432`
 - Banco: `gestor_mc`
 - Usuario: `gestor_mc`
 - Senha: `gestor_mc_local`
@@ -84,13 +84,7 @@ Para parar e remover os containers:
 docker compose down
 ```
 
-Os dados do PostgreSQL sao mantidos no volume Docker `postgres_data`. Para alterar as portas publicadas, defina `API_PORT` e/ou `DB_EXTERNAL_PORT` antes de subir os servicos:
-
-```powershell
-$env:API_PORT="8082"
-$env:DB_EXTERNAL_PORT="5434"
-docker compose up --build -d
-```
+Os dados do PostgreSQL sao mantidos no volume Docker `postgres_data`. As portas publicadas sao fixas: `8080` para a API e `5432` para o PostgreSQL.
 
 #### Variaveis de ambiente do Docker Compose
 
@@ -110,8 +104,6 @@ Para manter uma configuracao especifica para os containers, crie o arquivo `back
 DB_NAME=gestor_mc
 DB_USER=gestor_mc
 DB_PASSWORD=uma_senha_local_segura
-DB_EXTERNAL_PORT=5433
-API_PORT=8081
 SPRING_PROFILES_ACTIVE=dev
 JWT_SECRET=uma-chave-segura-com-mais-de-32-caracteres
 JWT_EXPIRATION_MINUTES=120
@@ -142,15 +134,6 @@ docker compose `
 
 No ambiente Docker, `DB_HOST` e `DB_PORT` da API sao definidos como `db` e `5432`. `db` e o nome do servico PostgreSQL dentro da rede privada do Compose. Por isso, valores como `DB_HOST` apontando para o Supabase no `.env` da raiz nao substituem a conexao interna entre a API e o banco local. As variaveis `DB_NAME`, `DB_USER` e `DB_PASSWORD`, por outro lado, sao aplicadas tanto na criacao do PostgreSQL quanto na conexao da API.
 
-Variaveis definidas no terminal tem prioridade sobre as mesmas variaveis presentes no arquivo informado. Exemplo:
-
-```powershell
-$env:API_PORT="8082"
-docker compose --env-file ../../.env up --build -d
-```
-
-Nesse caso, a API sera publicada em `http://localhost:8082`, mesmo que o arquivo `.env` defina outro valor para `API_PORT`.
-
 ### Endpoints principais da Fase 2 (Mensalidades)
 - `POST /api/monthly-fees/generate` (diretoria)
 - `PATCH /api/monthly-fees/{id}/status` (diretoria)
@@ -162,7 +145,7 @@ Nesse caso, a API sera publicada em `http://localhost:8082`, mesmo que o arquivo
 
 Diretorio: `web/gestor_mc_web`
 
-Com a API Docker em execucao na porta `8081`, instale as dependencias e inicie o Vite:
+Com a API Docker em execucao na porta `8080`, instale as dependencias e inicie o Vite:
 
 ```powershell
 cd web/gestor_mc_web
@@ -175,7 +158,7 @@ Acesse `http://localhost:5173`.
 O endereco da API pode ser alterado criando `web/gestor_mc_web/.env`:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8081
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 Para validar e gerar o pacote de producao:

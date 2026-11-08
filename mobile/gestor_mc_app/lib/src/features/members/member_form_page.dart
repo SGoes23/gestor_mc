@@ -23,9 +23,12 @@ class _MemberFormPageState extends State<MemberFormPage> {
   late final TextEditingController _emergencyController;
   late final TextEditingController _addressController;
   late final TextEditingController _roleController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
 
   late BloodType _bloodType;
   late MemberStatus _status;
+  late MemberAccessProfile _profile;
 
   @override
   void initState() {
@@ -37,8 +40,11 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _emergencyController = TextEditingController(text: initial?.emergencyContact ?? '');
     _addressController = TextEditingController(text: initial?.address ?? '');
     _roleController = TextEditingController(text: initial?.role ?? 'Membro');
+    _emailController = TextEditingController(text: initial?.email ?? '');
+    _passwordController = TextEditingController();
     _bloodType = initial?.bloodType ?? BloodType.oPositive;
     _status = initial?.status ?? MemberStatus.ativo;
+    _profile = initial?.profile ?? MemberAccessProfile.membro;
   }
 
   @override
@@ -49,6 +55,8 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _emergencyController.dispose();
     _addressController.dispose();
     _roleController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -67,6 +75,9 @@ class _MemberFormPageState extends State<MemberFormPage> {
         address: _addressController.text.trim(),
         role: _roleController.text.trim(),
         status: _status,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.isEmpty ? null : _passwordController.text,
+        profile: _profile,
       ),
     );
   }
@@ -140,6 +151,31 @@ class _MemberFormPageState extends State<MemberFormPage> {
               validator: _required,
             ),
             const SizedBox(height: 12),
+            DropdownButtonFormField<MemberAccessProfile>(
+              initialValue: _profile,
+              items: MemberAccessProfile.values
+                  .map((item) => DropdownMenuItem(value: item, child: Text(_profileLabel(item))))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _profile = value);
+              },
+              decoration: const InputDecoration(labelText: 'Perfil de acesso'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'E-mail de acesso'),
+              validator: _required,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: isEditing ? 'Nova senha (opcional)' : 'Senha inicial'),
+              validator: isEditing ? null : _required,
+            ),
+            const SizedBox(height: 12),
             DropdownButtonFormField<MemberStatus>(
               initialValue: _status,
               items: MemberStatus.values
@@ -195,6 +231,17 @@ class _MemberFormPageState extends State<MemberFormPage> {
         return 'O+';
       case BloodType.oNegative:
         return 'O-';
+    }
+  }
+
+  String _profileLabel(MemberAccessProfile profile) {
+    switch (profile) {
+      case MemberAccessProfile.membro:
+        return 'Membro';
+      case MemberAccessProfile.diretoria:
+        return 'Diretoria';
+      case MemberAccessProfile.administrativo:
+        return 'Administrativo';
     }
   }
 }

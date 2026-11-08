@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      isDiretoria: session?.profile === 'DIRETORIA',
+      isDiretoria: session?.profile === 'DIRETORIA' || session?.profile === 'ADMINISTRATIVO',
       login: async (email, password) => {
         const nextSession = await api.login(email, password)
         localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession))

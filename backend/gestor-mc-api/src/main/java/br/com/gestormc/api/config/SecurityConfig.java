@@ -30,30 +30,81 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/members/**", "/api/motorcycles/**").hasAnyRole("MEMBRO", "DIRETORIA")
-                        .requestMatchers(HttpMethod.GET, "/api/monthly-fees/**").hasAnyRole("MEMBRO", "DIRETORIA")
-                        .requestMatchers(HttpMethod.GET, "/api/cash/**").hasAnyRole("MEMBRO", "DIRETORIA")
-                        .requestMatchers(HttpMethod.GET, "/api/events/**").hasAnyRole("MEMBRO", "DIRETORIA")
-                        .requestMatchers(HttpMethod.POST, "/api/members/**", "/api/motorcycles/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.POST, "/api/monthly-fees/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.PATCH, "/api/monthly-fees/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.PUT, "/api/members/**", "/api/motorcycles/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.DELETE, "/api/members/**", "/api/motorcycles/**").hasRole("DIRETORIA")
-                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("DIRETORIA")
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/health"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/members/**",
+                                "/api/motorcycles/**",
+                                "/api/monthly-fees/**",
+                                "/api/cash/**",
+                                "/api/events/**"
+                        ).hasAnyRole(
+                                "MEMBRO",
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/members/**",
+                                "/api/motorcycles/**",
+                                "/api/monthly-fees/**",
+                                "/api/events/**"
+                        ).hasAnyRole(
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/monthly-fees/**"
+                        ).hasAnyRole(
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/members/**",
+                                "/api/motorcycles/**",
+                                "/api/events/**"
+                        ).hasAnyRole(
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/members/**",
+                                "/api/motorcycles/**",
+                                "/api/events/**"
+                        ).hasAnyRole(
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

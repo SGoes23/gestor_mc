@@ -1,10 +1,16 @@
 package br.com.gestormc.api.member;
 
+import br.com.gestormc.api.auth.AccessProfile;
+import br.com.gestormc.api.auth.AppUser;
+import br.com.gestormc.api.auth.AppUserRepository;
 import br.com.gestormc.api.motorcycle.Motorcycle;
 import br.com.gestormc.api.motorcycle.MotorcycleRepository;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.Valid;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +23,15 @@ public class MemberController {
 
     private final MemberRepository memberRepository;
     private final MotorcycleRepository motorcycleRepository;
+    private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public MemberController(MemberRepository memberRepository, MotorcycleRepository motorcycleRepository) {
+    public MemberController(MemberRepository memberRepository, MotorcycleRepository motorcycleRepository,
+                            AppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
         this.motorcycleRepository = motorcycleRepository;
+        this.appUserRepository = appUserRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -31,7 +42,7 @@ public class MemberController {
         } else {
             members = memberRepository.findByFullNameContainingIgnoreCaseOrNicknameContainingIgnoreCase(query, query);
         }
-        return members.stream().map(this::toSummary).toList();
+        return members.stream().map(member -> toSummary(member, findUser(member.getId()))).toList();
     }
 
     @GetMapping("/{id}")
@@ -41,12 +52,17 @@ public class MemberController {
                 .stream()
                 .map(this::toMotorcycleResponse)
                 .toList();
-        return toDetail(member, motorcycles);
+        return toDetail(member, findUser(member.getId()), motorcycles);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public MemberSummaryResponse create(@RequestBody @Valid UpsertMemberRequest request) {
+        if (request.password() == null || request.password().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha inicial e obrigatoria");
+        }
+        ensureEmailAvailable(request.email(), null);
         Member member = new Member(
                 request.fullName(),
                 request.nickname(),
@@ -57,10 +73,18 @@ public class MemberController {
                 request.role(),
                 request.status() == null ? MemberStatus.ATIVO : request.status()
         );
-        return toSummary(memberRepository.save(member));
+        member = memberRepository.save(member);
+        AppUser user = appUserRepository.save(new AppUser(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.profile(),
+                member
+        ));
+        return toSummary(member, user);
     }
 
     @PutMapping("/{id}")
+    @Transactional
     public MemberSummaryResponse update(@PathVariable Long id, @RequestBody @Valid UpsertMemberRequest request) {
         Member member = findMemberById(id);
         member.setFullName(request.fullName());
@@ -71,7 +95,22 @@ public class MemberController {
         member.setAddress(request.address());
         member.setRole(request.role());
         member.setStatus(request.status() == null ? MemberStatus.ATIVO : request.status());
-        return toSummary(memberRepository.save(member));
+        member = memberRepository.save(member);
+        AppUser user = findUser(id);
+        ensureEmailAvailable(request.email(), user == null ? null : user.getId());
+        if (user == null) {
+            if (request.password() == null || request.password().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha inicial e obrigatoria para criar o acesso");
+            }
+            user = new AppUser(request.email(), passwordEncoder.encode(request.password()), request.profile(), member);
+        } else {
+            user.setEmail(request.email());
+            user.setProfile(request.profile());
+            if (request.password() != null && !request.password().isBlank()) {
+                user.setPasswordHash(passwordEncoder.encode(request.password()));
+            }
+        }
+        return toSummary(member, appUserRepository.save(user));
     }
 
     @DeleteMapping("/{id}")
@@ -86,7 +125,19 @@ public class MemberController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro nao encontrado"));
     }
 
-    private MemberSummaryResponse toSummary(Member member) {
+    private AppUser findUser(Long memberId) {
+        return appUserRepository.findByMemberId(memberId).orElse(null);
+    }
+
+    private void ensureEmailAvailable(String email, Long currentUserId) {
+        appUserRepository.findByEmail(email).ifPresent(existing -> {
+            if (!existing.getId().equals(currentUserId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail ja utilizado por outro usuario");
+            }
+        });
+    }
+
+    private MemberSummaryResponse toSummary(Member member, AppUser user) {
         return new MemberSummaryResponse(
                 member.getId(),
                 member.getFullName(),
@@ -96,12 +147,14 @@ public class MemberController {
                 member.getEmergencyContact(),
                 member.getAddress(),
                 member.getRole(),
-                member.getStatus()
+                member.getStatus(),
+                user == null ? null : user.getEmail(),
+                user == null ? AccessProfile.MEMBRO : user.getProfile()
         );
     }
 
-    private MemberDetailResponse toDetail(Member member, List<MotorcycleResponse> motorcycles) {
-        MemberSummaryResponse summary = toSummary(member);
+    private MemberDetailResponse toDetail(Member member, AppUser user, List<MotorcycleResponse> motorcycles) {
+        MemberSummaryResponse summary = toSummary(member, user);
         return new MemberDetailResponse(
                 summary.id(),
                 summary.fullName(),
@@ -112,6 +165,8 @@ public class MemberController {
                 summary.address(),
                 summary.role(),
                 summary.status(),
+                summary.email(),
+                summary.profile(),
                 motorcycles
         );
     }
@@ -135,7 +190,10 @@ public class MemberController {
             @NotBlank String emergencyContact,
             @NotBlank String address,
             @NotBlank String role,
-            MemberStatus status
+            MemberStatus status,
+            @Email @NotBlank String email,
+            String password,
+            @NotNull AccessProfile profile
     ) {
     }
 
@@ -148,7 +206,9 @@ public class MemberController {
             String emergencyContact,
             String address,
             String role,
-            MemberStatus status
+            MemberStatus status,
+            String email,
+            AccessProfile profile
     ) {
     }
 
@@ -162,6 +222,8 @@ public class MemberController {
             String address,
             String role,
             MemberStatus status,
+            String email,
+            AccessProfile profile,
             List<MotorcycleResponse> motorcycles
     ) {
     }
