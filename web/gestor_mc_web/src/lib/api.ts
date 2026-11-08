@@ -12,16 +12,26 @@ import type {
   MonthlyFee,
   MonthlyFeeStatus,
 } from '../types'
+import { logger } from './logger'
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8080'
 
 export class ApiError extends Error {
   status: number
+  code: 'HTTP_ERROR' | 'NETWORK_ERROR' | 'TIMEOUT' | 'OFFLINE' | 'MIXED_CONTENT'
+  requestId: string
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    code: ApiError['code'] = 'HTTP_ERROR',
+    requestId = '',
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
+    this.requestId = requestId
   }
 }
 
@@ -37,28 +47,82 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
   })
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-      ...options.headers,
-    },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
+  const method = options.method ?? 'GET'
+  const requestId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  const startedAt = performance.now()
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), 15_000)
+  options.signal?.addEventListener('abort', () => controller.abort(), { once: true })
+  logger.debug('api.request', `${method} ${url.pathname}`, { requestId, url: url.toString() })
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-Id': requestId,
+        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        ...options.headers,
+      },
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    })
+  } catch (cause) {
+    const durationMs = Math.round(performance.now() - startedAt)
+    const isTimeout = controller.signal.aborted && !options.signal?.aborted
+    const isOffline = navigator.onLine === false
+    const isMixedContent = window.location.protocol === 'https:' && url.protocol === 'http:'
+    const code: ApiError['code'] = isTimeout ? 'TIMEOUT' : isOffline ? 'OFFLINE' : isMixedContent ? 'MIXED_CONTENT' : 'NETWORK_ERROR'
+    const message = isTimeout
+      ? 'A API não respondeu em até 15 segundos.'
+      : isOffline
+        ? 'O dispositivo está sem conexão com a internet ou rede local.'
+        : isMixedContent
+          ? 'O navegador bloqueou a API HTTP porque o frontend está usando HTTPS.'
+          : `Não foi possível conectar à API em ${url.origin}. Verifique se ela está ativa, a porta publicada e a configuração de CORS.`
+    logger.error('api.connection_failed', message, {
+      requestId,
+      method,
+      url: url.toString(),
+      code,
+      durationMs,
+      online: navigator.onLine,
+      frontendOrigin: window.location.origin,
+      cause,
+    })
+    throw new ApiError(message, 0, code, requestId)
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
 
   if (!response.ok) {
     let message = `A requisição falhou com o código ${response.status}.`
-    try {
-      const payload = (await response.json()) as { message?: string }
-      if (payload.message) message = payload.message
-    } catch {
-      const text = await response.text().catch(() => '')
-      if (text) message = text
+    const errorText = await response.text().catch(() => '')
+    if (errorText) {
+      try {
+        const payload = JSON.parse(errorText) as { message?: string }
+        message = payload.message || errorText
+      } catch { message = errorText }
     }
-    throw new ApiError(message, response.status)
+    const context = {
+      requestId,
+      method,
+      url: url.toString(),
+      status: response.status,
+      statusText: response.statusText,
+      durationMs: Math.round(performance.now() - startedAt),
+    }
+    if (response.status >= 500) logger.error('api.http_error', message, context)
+    else logger.warn('api.http_error', message, context)
+    throw new ApiError(message, response.status, 'HTTP_ERROR', requestId)
   }
 
+  logger.debug('api.response', `${method} ${url.pathname} concluído.`, {
+    requestId,
+    status: response.status,
+    durationMs: Math.round(performance.now() - startedAt),
+  })
   if (response.status === 204) return undefined as T
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
