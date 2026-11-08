@@ -52,17 +52,24 @@ class MonthlyFeeService {
     int monthlyFeeId,
     MonthlyFeeStatus status, {
     DateTime? paymentDate,
+    bool addToCash = false,
   }) async {
     final data = await _apiClient.patch(
       '/api/monthly-fees/$monthlyFeeId/status',
       {
         'status': monthlyFeeStatusToApi(status),
         'paymentDate': paymentDate == null ? null : _dateOnly(paymentDate),
+        'addToCash': addToCash,
       },
       token: token,
     ) as Map<String, dynamic>;
 
     return MonthlyFeeItem.fromJson(data);
+  }
+
+  Future<double> getCashBalance(String token) async {
+    final data = await _apiClient.get('/api/cash/balance', token: token) as Map<String, dynamic>;
+    return (data['balance'] as num).toDouble();
   }
 
   String _dateOnly(DateTime value) {
