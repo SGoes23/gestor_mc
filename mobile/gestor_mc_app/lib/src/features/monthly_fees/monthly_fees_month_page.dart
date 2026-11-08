@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
 import 'monthly_fee_models.dart';
+import 'monthly_fee_payment_dialog.dart';
 import 'monthly_fee_service.dart';
 
 class MonthlyFeesMonthPage extends StatefulWidget {
@@ -90,12 +91,19 @@ class _MonthlyFeesMonthPageState extends State<MonthlyFeesMonthPage> {
 
   Future<void> _toggleStatus(MonthlyFeeItem item) async {
     final next = item.status == MonthlyFeeStatus.pendente ? MonthlyFeeStatus.pago : MonthlyFeeStatus.pendente;
+    var addToCash = false;
+    if (next == MonthlyFeeStatus.pago) {
+      final selection = await showMonthlyFeePaymentDialog(context, item);
+      if (selection == null) return;
+      addToCash = selection;
+    }
     try {
       await widget.monthlyFeeService.updateStatus(
         widget.session.token,
         item.id,
         next,
         paymentDate: next == MonthlyFeeStatus.pago ? DateTime.now() : null,
+        addToCash: addToCash,
       );
       await _load();
     } catch (e) {

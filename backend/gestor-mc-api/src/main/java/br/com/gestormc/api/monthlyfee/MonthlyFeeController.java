@@ -94,7 +94,8 @@ public class MonthlyFeeController {
         MonthlyFee fee = monthlyFeeService.updateStatus(
                 monthlyFeeId,
                 request.status(),
-                request.paymentDate()
+                request.paymentDate(),
+                request.addToCash()
         );
         return toResponse(fee);
     }
@@ -132,7 +133,8 @@ public class MonthlyFeeController {
 
     public record UpdateMonthlyFeeStatusRequest(
             @NotNull MonthlyFeeStatus status,
-            LocalDate paymentDate
+            LocalDate paymentDate,
+            boolean addToCash
     ) {
     }
 
