@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/api/motorcycles/**",
                                 "/api/monthly-fees/**",
                                 "/api/cash/**",
-                                "/api/events/**"
+                                "/api/events/**",
+                                "/api/attendances/**"
                         ).hasAnyRole(
                                 "MEMBRO",
                                 "DIRETORIA",

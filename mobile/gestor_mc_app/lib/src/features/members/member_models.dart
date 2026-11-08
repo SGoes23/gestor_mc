@@ -124,6 +124,8 @@ class MemberSummary {
   final BloodType bloodType;
   final String emergencyContact;
   final String address;
+  final String postalCode;
+  final String cpf;
   final String role;
   final MemberStatus status;
   final String? email;
@@ -137,6 +139,8 @@ class MemberSummary {
     required this.bloodType,
     required this.emergencyContact,
     required this.address,
+    required this.postalCode,
+    required this.cpf,
     required this.role,
     required this.status,
     required this.email,
@@ -152,6 +156,8 @@ class MemberSummary {
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
       address: (json['address'] as String?) ?? '',
+      postalCode: (json['postalCode'] as String?) ?? '',
+      cpf: (json['cpf'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
       email: json['email'] as String?,
@@ -171,6 +177,8 @@ class MemberDetail extends MemberSummary {
     required super.bloodType,
     required super.emergencyContact,
     required super.address,
+    required super.postalCode,
+    required super.cpf,
     required super.role,
     required super.status,
     required super.email,
@@ -187,6 +195,8 @@ class MemberDetail extends MemberSummary {
       bloodType: bloodTypeFromApi(json['bloodType'] as String),
       emergencyContact: json['emergencyContact'] as String,
       address: (json['address'] as String?) ?? '',
+      postalCode: (json['postalCode'] as String?) ?? '',
+      cpf: (json['cpf'] as String?) ?? '',
       role: json['role'] as String,
       status: memberStatusFromApi(json['status'] as String),
       email: json['email'] as String?,
@@ -205,6 +215,8 @@ class UpsertMemberPayload {
   final BloodType bloodType;
   final String emergencyContact;
   final String address;
+  final String postalCode;
+  final String cpf;
   final String role;
   final MemberStatus status;
   final String email;
@@ -218,6 +230,8 @@ class UpsertMemberPayload {
     required this.bloodType,
     required this.emergencyContact,
     required this.address,
+    required this.postalCode,
+    required this.cpf,
     required this.role,
     required this.status,
     required this.email,
@@ -233,6 +247,8 @@ class UpsertMemberPayload {
       'bloodType': bloodTypeToApi(bloodType),
       'emergencyContact': emergencyContact,
       'address': address,
+      'postalCode': postalCode,
+      'cpf': cpf,
       'role': role,
       'status': memberStatusToApi(status),
       'email': email,

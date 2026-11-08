@@ -6,8 +6,8 @@ import { API_BASE_URL } from '../lib/api'
 
 export function LoginPage() {
   const { session, login } = useAuth()
-  const [email, setEmail] = useState('diretoria@gestormc.local')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -97,11 +97,6 @@ export function LoginPage() {
             </button>
           </form>
 
-          <div className="demo-access">
-            <strong>Acesso local de demonstração</strong>
-            <span>Diretoria: diretoria@gestormc.local / admin123</span>
-            <span>Membro: membro@gestormc.local / membro123</span>
-          </div>
           <p className="api-address">API configurada: <code>{API_BASE_URL}</code></p>
         </div>
       </section>

@@ -1,7 +1,10 @@
 import type {
   AuthSession,
+  AttendanceItemPayload,
+  AttendanceRecord,
   ClubEvent,
   EventPayload,
+  EventAttendanceSummary,
   GenerateMonthlyFeesPayload,
   GenerateMonthlyFeesResult,
   MemberDetail,
@@ -154,12 +157,21 @@ export const api = {
     request<void>(`/api/motorcycles/${motorcycleId}`, { method: 'DELETE', token }),
 
   listEvents: (token: string) => request<ClubEvent[]>('/api/events', { token }),
+  getEvent: (token: string, eventId: number) => request<ClubEvent>(`/api/events/${eventId}`, { token }),
   createEvent: (token: string, body: EventPayload) =>
     request<ClubEvent>('/api/events', { method: 'POST', token, body }),
   updateEvent: (token: string, eventId: number, body: EventPayload) =>
     request<ClubEvent>(`/api/events/${eventId}`, { method: 'PUT', token, body }),
   deleteEvent: (token: string, eventId: number) =>
     request<void>(`/api/events/${eventId}`, { method: 'DELETE', token }),
+  listEventAttendances: (token: string, eventId: number) =>
+    request<AttendanceRecord[]>(`/api/events/${eventId}/attendances`, { token }),
+  saveEventAttendances: (token: string, eventId: number, attendances: AttendanceItemPayload[]) =>
+    request<AttendanceRecord[]>(`/api/events/${eventId}/attendances`, {
+      method: 'PUT', token, body: { attendances },
+    }),
+  listAttendanceEvents: (token: string, from?: string, to?: string) =>
+    request<EventAttendanceSummary[]>('/api/attendances/events', { token, query: { from, to } }),
 
   listMonthlyFees: (token: string, referenceMonth: string) =>
     request<MonthlyFee[]>('/api/monthly-fees', { token, query: { referenceMonth } }),

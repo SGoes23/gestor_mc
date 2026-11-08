@@ -1,16 +1,17 @@
 import { CalendarDays, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader } from '../components/ui'
 import { ModalFormActions } from '../components/FormControls'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import { eventTypeLabel, formatDate } from '../lib/format'
+import { currentDate, eventTypeLabel, formatDate } from '../lib/format'
 import type { ClubEvent, EventPayload, EventType } from '../types'
 
 const emptyEvent: EventPayload = {
   title: '',
   type: 'ROLE',
-  eventDate: new Date().toISOString().slice(0, 10),
+  eventDate: currentDate(),
   place: '',
   description: '',
 }
@@ -103,12 +104,27 @@ export function EventsPage() {
 }
 
 function EventCard({ event, canEdit, onEdit, onDelete }: { event: ClubEvent; canEdit: boolean; onEdit: () => void; onDelete: () => void }) {
+  const navigate = useNavigate()
+  const openDetails = () => navigate(`/eventos/${event.id}`)
+
   return (
-    <article className="event-card">
+    <article
+      className="event-card event-card-clickable"
+      role="link"
+      tabIndex={0}
+      aria-label={`Abrir detalhes e presença do evento ${event.title}`}
+      onClick={openDetails}
+      onKeyDown={(keyboardEvent) => {
+        if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+          keyboardEvent.preventDefault()
+          openDetails()
+        }
+      }}
+    >
       <div className="event-card-top">
         <div className="event-date-large"><strong>{event.eventDate.slice(8, 10)}</strong><span>{new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(`${event.eventDate}T12:00:00`)).replace('.', '')}</span></div>
         <span className={`event-type type-${event.type.toLowerCase()}`}>{eventTypeLabel[event.type]}</span>
-        {canEdit && <div className="row-actions"><button className="icon-button" onClick={onEdit} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={onDelete} aria-label="Excluir evento"><Trash2 size={16} /></button></div>}
+        {canEdit && <div className="row-actions"><button className="icon-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); onEdit() }} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={(clickEvent) => { clickEvent.stopPropagation(); onDelete() }} aria-label="Excluir evento"><Trash2 size={16} /></button></div>}
       </div>
       <h3>{event.title}</h3>
       <p>{event.description}</p>

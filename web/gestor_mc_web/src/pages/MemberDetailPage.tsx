@@ -8,7 +8,7 @@ import { MonthlyFeePaymentModal } from '../components/MonthlyFeePaymentModal'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, MonthlyFeeStatusPill, PageHeader, StatusPill } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import { formatCurrency, formatDate, monthLabel } from '../lib/format'
+import { formatCpf, formatCurrency, formatDate, formatPhone, formatPostalCode, monthLabel } from '../lib/format'
 import type { MemberDetail, Motorcycle, MotorcyclePayload, MonthlyFee } from '../types'
 
 export function MemberDetailPage() {
@@ -114,9 +114,10 @@ export function MemberDetailPage() {
             <div><h2>{member.nickname}</h2><span>{member.role}</span></div>
           </div>
           <div className="profile-details">
-            <div><Phone size={18} /><span><small>Telefone</small><strong>{member.phone}</strong></span></div>
-            <div><UserRound size={18} /><span><small>Emergência</small><strong>{member.emergencyContact}</strong></span></div>
-            <div><MapPin size={18} /><span><small>Endereço</small><strong>{member.address}</strong></span></div>
+            <div><Phone size={18} /><span><small>Telefone</small><strong>{formatPhone(member.phone)}</strong></span></div>
+            <div><UserRound size={18} /><span><small>Emergência</small><strong>{formatPhone(member.emergencyContact)}</strong></span></div>
+            <div><MapPin size={18} /><span><small>Endereço</small><strong>{member.address} · CEP {formatPostalCode(member.postalCode) || 'Não informado'}</strong></span></div>
+            <div><UserRound size={18} /><span><small>CPF</small><strong>{formatCpf(member.cpf) || 'Não informado'}</strong></span></div>
             <div><BloodTypeIndicator bloodType={member.bloodType} size="profile" /></div>
           </div>
         </article>
