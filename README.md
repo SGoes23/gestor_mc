@@ -107,7 +107,16 @@ DB_PASSWORD=uma_senha_local_segura
 SPRING_PROFILES_ACTIVE=dev
 JWT_SECRET=uma-chave-segura-com-mais-de-32-caracteres
 JWT_EXPIRATION_MINUTES=120
+B2_BUCKET=gestor-mc-contas
+B2_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+B2_REGION=us-east-005
+B2_ACCESS_KEY=id-da-chave-de-aplicacao
+B2_SECRET_KEY=chave-de-aplicacao
 ```
+
+`B2_ACCESS_KEY` e `B2_SECRET_KEY` devem ser uma Application Key do Backblaze B2 com acesso de
+leitura e escrita ao bucket privado `gestor-mc-contas`. O ID interno do bucket nao e usado pela
+API S3 compativel. Nao coloque essas credenciais no frontend nem as envie para o Git.
 
 Depois execute normalmente:
 
@@ -140,6 +149,20 @@ No ambiente Docker, `DB_HOST` e `DB_PORT` da API sao definidos como `db` e `5432
 - `GET /api/monthly-fees?referenceMonth=YYYY-MM`
 - `GET /api/monthly-fees/defaulters?referenceMonth=YYYY-MM`
 - `GET /api/monthly-fees/history/member/{memberId}`
+
+### Contas a pagar
+
+- `GET /api/accounts-payable` (diretoria/administrativo)
+- `POST /api/accounts-payable` com `multipart/form-data` (`description`, `amount`, `dueDate`, `file`)
+- `PATCH /api/accounts-payable/{id}/status`
+- `GET /api/accounts-payable/{id}/document`
+- `PATCH /api/accounts-payable/{id}/payment` com comprovante opcional
+- `PUT /api/accounts-payable/{id}/document` para substituir o documento da conta
+- `PUT /api/accounts-payable/{id}/payment-proof` para enviar ou substituir o comprovante
+- `GET /api/accounts-payable/{id}/payment-proof`
+
+Os anexos aceitos sao PDF, JPG, PNG e WebP, com ate 10 MB. Upload e download passam pela API
+autenticada; o bucket permanece privado.
 
 ## 4) Aplicacao Web
 

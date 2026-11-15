@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage'
 import { MemberDetailPage } from './pages/MemberDetailPage'
 import { MembersPage } from './pages/MembersPage'
 import { MonthlyFeesPage } from './pages/MonthlyFeesPage'
+import { AccountsPayablePage } from './pages/AccountsPayablePage'
 
 function ProtectedLayout() {
   const { session } = useAuth()
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="presencas" element={<AttendancesPage />} />
         <Route path="mensalidades" element={<MonthlyFeesPage />} />
         <Route path="inadimplentes" element={<DefaultersPage />} />
+        <Route path="contas-a-pagar" element={<AccountsPayablePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

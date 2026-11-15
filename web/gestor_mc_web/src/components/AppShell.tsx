@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   ReceiptText,
+  Landmark,
   ShieldAlert,
   UsersRound,
   X,
@@ -21,11 +22,13 @@ const navigation = [
   { to: '/presencas', label: 'Presenças', icon: ClipboardCheck },
   { to: '/mensalidades', label: 'Mensalidades', icon: ReceiptText },
   { to: '/inadimplentes', label: 'Inadimplentes', icon: ShieldAlert },
+  { to: '/contas-a-pagar', label: 'Contas a pagar', icon: Landmark, managementOnly: true },
 ]
 
 export function AppShell() {
   const { session, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const visibleNavigation = navigation.filter((item) => !item.managementOnly || session?.profile !== 'MEMBRO')
 
   return (
     <div className="app-shell">
@@ -45,7 +48,7 @@ export function AppShell() {
 
         <div className="sidebar-kicker">Gestão do clube</div>
         <nav className="main-nav" aria-label="Navegação principal">
-          {navigation.map(({ to, label, icon: Icon, end }) => (
+          {visibleNavigation.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

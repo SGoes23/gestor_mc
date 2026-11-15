@@ -39,6 +39,11 @@ public class SecurityConfig {
                                 "/api/health"
                         ).permitAll()
 
+                        .requestMatchers("/api/accounts-payable", "/api/accounts-payable/**").hasAnyRole(
+                                "DIRETORIA",
+                                "ADMINISTRATIVO"
+                        )
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/members/**",

@@ -238,6 +238,20 @@ tbody tr:hover td { background: #fcfbf8; }
 .field input, .field select, .field textarea { width: 100%; min-height: 42px; padding: 0 12px; color: var(--ink); background: #fbfaf8; border: 1px solid var(--line); border-radius: 6px; outline: 0; font-size: 13px; transition: 140ms ease; }
 .field textarea { min-height: 90px; padding-top: 11px; resize: vertical; }
 .field input:focus, .field select:focus, .field textarea:focus { background: #fff; border-color: #b99452; box-shadow: 0 0 0 3px rgba(212, 148, 37, 0.1); }
+.file-field input { padding: 8px; }
+.file-field input::file-selector-button { margin-right: 10px; padding: 7px 10px; color: var(--ink-soft); background: #f1ede5; border: 1px solid var(--line); border-radius: 5px; cursor: pointer; }
+.file-field small { color: var(--muted); font-size: 10px; }
+.document-button { display: inline-flex; max-width: 230px; align-items: center; gap: 8px; padding: 5px 8px; color: var(--amber-deep); background: transparent; border: 0; border-radius: 5px; text-align: left; }
+.document-button:hover { background: var(--amber-soft); }
+.document-button > span { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.document-button strong { overflow: hidden; max-width: 185px; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.document-button small { color: var(--muted); font-size: 9px; }
+.attachment-list { display: flex; min-width: 230px; flex-direction: column; gap: 5px; }
+.attachment-row { display: flex; align-items: center; gap: 2px; }
+.attachment-row .document-button { flex: 1; }
+.attachment-replace { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 5px; }
+.attachment-replace:hover { color: var(--amber-deep); background: var(--amber-soft); border-color: #ecd9b1; }
+.attachment-missing { display: inline-flex; width: max-content; align-items: center; gap: 6px; padding: 6px 8px; color: var(--amber-deep); background: var(--amber-soft); border: 1px dashed #dfc58f; border-radius: 5px; font-size: 10px; font-weight: 700; }
 .field-span { grid-column: 1 / -1; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
 .payment-confirmation { padding: 24px; }
