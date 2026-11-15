@@ -124,3 +124,29 @@ export interface GenerateMonthlyFeesResult {
   created: number
   existing: number
 }
+
+export type AccountPayableStatus = 'PENDENTE' | 'PAGO'
+
+export interface AccountPayable {
+  id: number
+  description: string
+  amount: number
+  dueDate: string
+  status: AccountPayableStatus
+  paidDate: string | null
+  documentName: string
+  documentContentType: string
+  documentSize: number
+  hasPaymentProof: boolean
+  paymentProofName: string | null
+  paymentProofContentType: string | null
+  paymentProofSize: number | null
+  createdAt: string
+}
+
+export interface AccountPayablePayload {
+  description: string
+  amount: number
+  dueDate: string
+  file: File
+}

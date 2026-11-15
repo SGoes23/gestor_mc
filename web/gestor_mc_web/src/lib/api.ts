@@ -14,6 +14,9 @@ import type {
   MotorcyclePayload,
   MonthlyFee,
   MonthlyFeeStatus,
+  AccountPayable,
+  AccountPayablePayload,
+  AccountPayableStatus,
 } from '../types'
 import { logger } from './logger'
 
@@ -54,22 +57,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const requestId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
   const startedAt = performance.now()
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), 15_000)
+  const timeoutId = window.setTimeout(() => controller.abort(), options.body instanceof FormData ? 60_000 : 15_000)
   options.signal?.addEventListener('abort', () => controller.abort(), { once: true })
   logger.debug('api.request', `${method} ${url.pathname}`, { requestId, url: url.toString() })
 
   let response: Response
+  const isFormData = options.body instanceof FormData
+  const requestBody: BodyInit | undefined = options.body === undefined
+    ? undefined
+    : options.body instanceof FormData
+      ? options.body
+      : JSON.stringify(options.body)
   try {
     response = await fetch(url, {
       ...options,
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         'X-Request-Id': requestId,
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
         ...options.headers,
       },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: requestBody,
     })
   } catch (cause) {
     const durationMs = Math.round(performance.now() - startedAt)
@@ -129,6 +138,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (response.status === 204) return undefined as T
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
+}
+
+async function requestBlob(path: string, token: string): Promise<Blob> {
+  const response = await fetch(new URL(path, API_BASE_URL), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    let message = text || `A requisição falhou com o código ${response.status}.`
+    try { message = (JSON.parse(text) as { message?: string }).message || message } catch { /* resposta textual */ }
+    throw new ApiError(message, response.status)
+  }
+  return response.blob()
 }
 
 export const api = {
@@ -195,4 +217,49 @@ export const api = {
     }),
   getCashBalance: (token: string) =>
     request<{ balance: number }>('/api/cash/balance', { token }),
+
+  listAccountsPayable: (token: string) =>
+    request<AccountPayable[]>('/api/accounts-payable', { token }),
+  createAccountPayable: (token: string, payload: AccountPayablePayload) => {
+    const body = new FormData()
+    body.append('description', payload.description)
+    body.append('amount', String(payload.amount))
+    body.append('dueDate', payload.dueDate)
+    body.append('file', payload.file)
+    return request<AccountPayable>('/api/accounts-payable', { method: 'POST', token, body })
+  },
+  updateAccountPayableStatus: (
+    token: string,
+    accountId: number,
+    status: AccountPayableStatus,
+    paidDate: string | null,
+  ) => request<AccountPayable>(`/api/accounts-payable/${accountId}/status`, {
+    method: 'PATCH', token, body: { status, paidDate },
+  }),
+  downloadAccountPayableDocument: (token: string, accountId: number) =>
+    requestBlob(`/api/accounts-payable/${accountId}/document`, token),
+  markAccountPayablePaid: (token: string, accountId: number, paidDate: string, file: File | null) => {
+    const body = new FormData()
+    body.append('paidDate', paidDate)
+    if (file) body.append('file', file)
+    return request<AccountPayable>(`/api/accounts-payable/${accountId}/payment`, {
+      method: 'PATCH', token, body,
+    })
+  },
+  replaceAccountPayableDocument: (token: string, accountId: number, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request<AccountPayable>(`/api/accounts-payable/${accountId}/document`, {
+      method: 'PUT', token, body,
+    })
+  },
+  replaceAccountPayablePaymentProof: (token: string, accountId: number, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request<AccountPayable>(`/api/accounts-payable/${accountId}/payment-proof`, {
+      method: 'PUT', token, body,
+    })
+  },
+  downloadAccountPayablePaymentProof: (token: string, accountId: number) =>
+    requestBlob(`/api/accounts-payable/${accountId}/payment-proof`, token),
 }

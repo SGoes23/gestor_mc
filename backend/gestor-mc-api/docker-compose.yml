@@ -33,6 +33,11 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-key-with-at-least-32-characters}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
+      B2_BUCKET: ${B2_BUCKET:-gestor-mc-contas}
+      B2_ENDPOINT: ${B2_ENDPOINT:-https://s3.us-east-005.backblazeb2.com}
+      B2_REGION: ${B2_REGION:-us-east-005}
+      B2_ACCESS_KEY: ${B2_ACCESS_KEY:-}
+      B2_SECRET_KEY: ${B2_SECRET_KEY:-}
     ports:
       - "8080:8080"
     depends_on:

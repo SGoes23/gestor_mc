@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
@@ -18,6 +23,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
 
 management:
   endpoints:
@@ -30,3 +39,11 @@ security:
     # Troque em producao com valor seguro vindo de variavel de ambiente.
     secret: ${JWT_SECRET:change-this-secret-key-with-at-least-32-chars}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+
+storage:
+  accounts-payable:
+    bucket: ${B2_BUCKET:gestor-mc-contas}
+    endpoint: ${B2_ENDPOINT:https://s3.us-east-005.backblazeb2.com}
+    region: ${B2_REGION:us-east-005}
+    access-key: ${B2_ACCESS_KEY:}
+    secret-key: ${B2_SECRET_KEY:}
