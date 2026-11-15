@@ -1,7 +1,9 @@
 package br.com.gestormc.api.monthlyfee;
 
+import br.com.gestormc.api.auth.AppUser;
 import br.com.gestormc.api.cash.CashMovement;
 import br.com.gestormc.api.cash.CashMovementRepository;
+import br.com.gestormc.api.cash.CashMovementType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,12 @@ public class MonthlyFeeService {
     @Transactional
     public MonthlyFee updateStatus(Long monthlyFeeId, MonthlyFeeStatus status, LocalDate paymentDate,
                                    boolean addToCash) {
+        return updateStatus(monthlyFeeId, status, paymentDate, addToCash, null);
+    }
+
+    @Transactional
+    public MonthlyFee updateStatus(Long monthlyFeeId, MonthlyFeeStatus status, LocalDate paymentDate,
+                                   boolean addToCash, AppUser actor) {
         MonthlyFee fee = monthlyFeeRepository.findByIdWithMember(monthlyFeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade nao encontrada"));
 
@@ -35,9 +43,12 @@ public class MonthlyFeeService {
                 String description = "Mensalidade " + fee.getReferenceMonth() + " - " + fee.getMember().getFullName();
                 cashMovementRepository.save(new CashMovement(
                         fee,
+                        CashMovementType.ENTRADA,
+                        "MENSALIDADE",
                         fee.getAmount(),
                         effectivePaymentDate,
-                        description
+                        description,
+                        actor
                 ));
             }
         } else {

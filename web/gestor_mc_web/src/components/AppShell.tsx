@@ -1,12 +1,13 @@
 import {
   CalendarDays,
+  CircleDollarSign,
   ClipboardCheck,
   ChevronRight,
   Gauge,
+  Landmark,
   LogOut,
   Menu,
   ReceiptText,
-  Landmark,
   ShieldAlert,
   UsersRound,
   X,
@@ -23,6 +24,7 @@ const navigation = [
   { to: '/mensalidades', label: 'Mensalidades', icon: ReceiptText },
   { to: '/inadimplentes', label: 'Inadimplentes', icon: ShieldAlert },
   { to: '/contas-a-pagar', label: 'Contas a pagar', icon: Landmark, managementOnly: true },
+  { to: '/caixa', label: 'Fluxo de Caixa', icon: CircleDollarSign },
 ]
 
 export function AppShell() {

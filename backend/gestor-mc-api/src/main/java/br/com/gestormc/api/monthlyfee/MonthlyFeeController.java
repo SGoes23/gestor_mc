@@ -1,5 +1,6 @@
 package br.com.gestormc.api.monthlyfee;
 
+import br.com.gestormc.api.auth.AppUser;
 import br.com.gestormc.api.member.Member;
 import br.com.gestormc.api.member.MemberRepository;
 import jakarta.validation.Valid;
@@ -7,7 +8,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -90,14 +100,16 @@ public class MonthlyFeeController {
 
     @PatchMapping("/{monthlyFeeId}/status")
     public MonthlyFeeResponse updateStatus(@PathVariable Long monthlyFeeId,
-                                           @RequestBody @Valid UpdateMonthlyFeeStatusRequest request) {
-        MonthlyFee fee = monthlyFeeService.updateStatus(
-                monthlyFeeId,
-                request.status(),
-                request.paymentDate(),
-                request.addToCash()
-        );
+                                           @RequestBody @Valid UpdateMonthlyFeeStatusRequest request,
+                                           @AuthenticationPrincipal AppUser user) {
+        MonthlyFee fee = user != null
+                ? monthlyFeeService.updateStatus(monthlyFeeId, request.status(), request.paymentDate(), request.addToCash(), user)
+                : monthlyFeeService.updateStatus(monthlyFeeId, request.status(), request.paymentDate(), request.addToCash());
         return toResponse(fee);
+    }
+
+    public MonthlyFeeResponse updateStatus(Long monthlyFeeId, UpdateMonthlyFeeStatusRequest request) {
+        return updateStatus(monthlyFeeId, request, null);
     }
 
     private MonthlyFeeResponse toResponse(MonthlyFee fee) {

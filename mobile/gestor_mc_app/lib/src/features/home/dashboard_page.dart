@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
+import '../cash/cash_models.dart';
+import '../cash/cash_page.dart';
+import '../cash/cash_service.dart';
 import '../events/event_models.dart';
 import '../events/event_service.dart';
 import '../events/events_page.dart';
@@ -18,6 +21,7 @@ class DashboardPage extends StatefulWidget {
     required this.memberService,
     required this.monthlyFeeService,
     required this.eventService,
+    required this.cashService,
     required this.onLogout,
   });
 
@@ -25,6 +29,7 @@ class DashboardPage extends StatefulWidget {
   final MemberService memberService;
   final MonthlyFeeService monthlyFeeService;
   final EventService eventService;
+  final CashService cashService;
   final VoidCallback onLogout;
 
   @override
@@ -58,7 +63,7 @@ class _DashboardPageState extends State<DashboardPage> {
       'Nao foi possivel carregar reunioes',
     );
     final cashFuture = _loadSection(
-      () => widget.monthlyFeeService.getCashBalance(widget.session.token),
+      () => widget.cashService.getSummary(widget.session.token),
       'Nao foi possivel carregar o caixa',
     );
 
@@ -123,6 +128,17 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  void _openCash() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CashPage(
+          session: widget.session,
+          cashService: widget.cashService,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = _data;
@@ -168,6 +184,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   title: 'Membros ativos',
                   value: '${data.activeMembers}',
                   subtitle: 'de ${data.members.data!.length} membros cadastrados',
+                  onTap: _openMembers,
                 ),
               if (data.events.error != null)
                 _UnavailableCard(title: 'Reunioes neste mes', message: data.events.error!)
@@ -177,6 +194,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   title: 'Reunioes neste mes',
                   value: '${data.monthlyMeetings}',
                   subtitle: 'conforme o calendario',
+                  onTap: _openEvents,
                 ),
               if (data.cash.error != null)
                 _UnavailableCard(title: 'Caixa do clube', message: data.cash.error!)
@@ -184,8 +202,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 _MetricCard(
                   icon: Icons.account_balance_wallet_outlined,
                   title: 'Caixa do clube',
-                  value: 'R\$ ${data.cash.data!.toStringAsFixed(2)}',
-                  subtitle: 'Saldo de mensalidades lancadas',
+                  value: 'R\$ ${data.cash.data!.balance.toStringAsFixed(2)}',
+                  subtitle: 'Entradas: R\$ ${data.cash.data!.totalIncome.toStringAsFixed(2)} | Saídas: R\$ ${data.cash.data!.totalExpense.toStringAsFixed(2)}',
+                  onTap: _openCash,
                 ),
               const SizedBox(height: 16),
               Text('Mensalidades em atraso', style: Theme.of(context).textTheme.titleMedium),
@@ -218,6 +237,12 @@ class _DashboardPageState extends State<DashboardPage> {
               subtitle: 'Pagamentos e inadimplencia',
               onTap: _openMonthlyFees,
             ),
+            _NavigationCard(
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'Fluxo de Caixa & Despesas',
+              subtitle: 'Entradas, despesas e auditoria do caixa',
+              onTap: _openCash,
+            ),
           ],
         ),
       ),
@@ -237,7 +262,7 @@ class _DashboardData {
   final _SectionData<List<MemberSummary>> members;
   final _SectionData<List<MonthlyFeeItem>> monthlyFees;
   final _SectionData<List<ClubEvent>> events;
-  final _SectionData<double> cash;
+  final _SectionData<CashSummary> cash;
   final DateTime referenceDate;
 
   int get activeMembers {
@@ -248,19 +273,20 @@ class _DashboardData {
     return events.data!
         .where(
           (event) =>
-              event.type == ClubEventType.reuniao &&
               event.eventDate.year == referenceDate.year &&
-              event.eventDate.month == referenceDate.month,
+              event.eventDate.month == referenceDate.month &&
+              event.isMeeting,
         )
         .length;
   }
 }
 
 class _SectionData<T> {
-  const _SectionData({
-    this.data,
-    this.error,
-  }) : assert(data != null || error != null);
+  const _SectionData({this.data, this.error})
+      : assert(
+          data != null || error != null,
+          'Deve ter dados ou mensagem de erro',
+        );
 
   final T? data;
   final String? error;
@@ -272,12 +298,14 @@ class _MetricCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String value;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +315,7 @@ class _MetricCard extends StatelessWidget {
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: Text(value, style: Theme.of(context).textTheme.headlineSmall),
+        onTap: onTap,
       ),
     );
   }

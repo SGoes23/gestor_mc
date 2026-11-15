@@ -1,16 +1,17 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { useAuth } from './context/AuthContext'
+import { AccountsPayablePage } from './pages/AccountsPayablePage'
+import { AttendancesPage } from './pages/AttendancesPage'
+import { CashFlowPage } from './pages/CashFlowPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { DefaultersPage } from './pages/DefaultersPage'
-import { AttendancesPage } from './pages/AttendancesPage'
 import { EventDetailPage } from './pages/EventDetailPage'
 import { EventsPage } from './pages/EventsPage'
 import { LoginPage } from './pages/LoginPage'
 import { MemberDetailPage } from './pages/MemberDetailPage'
 import { MembersPage } from './pages/MembersPage'
 import { MonthlyFeesPage } from './pages/MonthlyFeesPage'
-import { AccountsPayablePage } from './pages/AccountsPayablePage'
 
 function ProtectedLayout() {
   const { session } = useAuth()
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="mensalidades" element={<MonthlyFeesPage />} />
         <Route path="inadimplentes" element={<DefaultersPage />} />
         <Route path="contas-a-pagar" element={<AccountsPayablePage />} />
+        <Route path="caixa" element={<CashFlowPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

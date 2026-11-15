@@ -13,13 +13,13 @@ import { ErrorState, LoadingState, PageHeader, StatusPill } from '../components/
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { currentDate, currentMonth, daysOverdue, eventTypeLabel, formatCurrency, formatDate, monthLabel } from '../lib/format'
-import type { ClubEvent, MemberSummary, MonthlyFee } from '../types'
+import type { CashSummary, ClubEvent, MemberSummary, MonthlyFee } from '../types'
 
 interface DashboardData {
   members: MemberSummary[]
   events: ClubEvent[]
   defaulters: MonthlyFee[]
-  cashBalance: number
+  cashSummary: CashSummary
 }
 
 export function DashboardPage() {
@@ -35,13 +35,13 @@ export function DashboardPage() {
     setLoading(true)
     setError('')
     try {
-      const [members, events, defaulters, cash] = await Promise.all([
+      const [members, events, defaulters, cashSummary] = await Promise.all([
         api.listMembers(session.token),
         api.listEvents(session.token),
         api.listDefaulters(session.token, month),
-        api.getCashBalance(session.token),
+        api.getCashSummary(session.token),
       ])
-      setData({ members, events, defaulters, cashBalance: cash.balance })
+      setData({ members, events, defaulters, cashSummary })
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Falha ao carregar o dashboard.')
     } finally {
@@ -111,11 +111,11 @@ export function DashboardPage() {
               tone="alert"
             />
             <MetricLinkCard
-              to="/mensalidades"
+              to="/caixa"
               icon={<CircleDollarSign size={24} />}
               title="Caixa do clube"
-              value={formatCurrency(data.cashBalance)}
-              subtitle="Saldo de mensalidades lançadas"
+              value={formatCurrency(data.cashSummary.balance)}
+              subtitle={`Entradas: ${formatCurrency(data.cashSummary.totalIncome)} | Saídas: ${formatCurrency(data.cashSummary.totalExpense)}`}
               compactValue
             />
           </section>

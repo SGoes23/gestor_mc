@@ -150,3 +150,38 @@ export interface AccountPayablePayload {
   dueDate: string
   file: File
 }
+
+export type CashMovementType = 'ENTRADA' | 'SAIDA'
+
+export interface CashSummary {
+  balance: number
+  totalIncome: number
+  totalExpense: number
+}
+
+export interface CashMovementCreatedBy {
+  id: number
+  email: string
+  memberName: string | null
+  memberNickname: string | null
+}
+
+export interface CashMovement {
+  id: number
+  monthlyFeeId: number | null
+  type: CashMovementType
+  category: string
+  amount: number
+  movementDate: string
+  description: string
+  createdBy: CashMovementCreatedBy | null
+  createdAt: string
+}
+
+export interface CreateCashMovementPayload {
+  type: CashMovementType
+  category: string
+  amount: number
+  movementDate: string
+  description: string
+}

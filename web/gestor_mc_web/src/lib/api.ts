@@ -2,7 +2,10 @@ import type {
   AuthSession,
   AttendanceItemPayload,
   AttendanceRecord,
+  CashMovement,
+  CashSummary,
   ClubEvent,
+  CreateCashMovementPayload,
   EventPayload,
   EventAttendanceSummary,
   GenerateMonthlyFeesPayload,
@@ -53,102 +56,113 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
   })
 
-  const method = options.method ?? 'GET'
-  const requestId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
-  const startedAt = performance.now()
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), options.body instanceof FormData ? 60_000 : 15_000)
-  options.signal?.addEventListener('abort', () => controller.abort(), { once: true })
-  logger.debug('api.request', `${method} ${url.pathname}`, { requestId, url: url.toString() })
-
-  let response: Response
-  const isFormData = options.body instanceof FormData
-  const requestBody: BodyInit | undefined = options.body === undefined
-    ? undefined
-    : options.body instanceof FormData
-      ? options.body
-      : JSON.stringify(options.body)
-  try {
-    response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-        'X-Request-Id': requestId,
-        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-        ...options.headers,
-      },
-      body: requestBody,
-    })
-  } catch (cause) {
-    const durationMs = Math.round(performance.now() - startedAt)
-    const isTimeout = controller.signal.aborted && !options.signal?.aborted
-    const isOffline = navigator.onLine === false
-    const isMixedContent = window.location.protocol === 'https:' && url.protocol === 'http:'
-    const code: ApiError['code'] = isTimeout ? 'TIMEOUT' : isOffline ? 'OFFLINE' : isMixedContent ? 'MIXED_CONTENT' : 'NETWORK_ERROR'
-    const message = isTimeout
-      ? 'A API não respondeu em até 15 segundos.'
-      : isOffline
-        ? 'O dispositivo está sem conexão com a internet ou rede local.'
-        : isMixedContent
-          ? 'O navegador bloqueou a API HTTP porque o frontend está usando HTTPS.'
-          : `Não foi possível conectar à API em ${url.origin}. Verifique se ela está ativa, a porta publicada e a configuração de CORS.`
-    logger.error('api.connection_failed', message, {
-      requestId,
-      method,
-      url: url.toString(),
-      code,
-      durationMs,
-      online: navigator.onLine,
-      frontendOrigin: window.location.origin,
-      cause,
-    })
-    throw new ApiError(message, 0, code, requestId)
-  } finally {
-    window.clearTimeout(timeoutId)
+  const headers = new Headers(options.headers)
+  if (options.token) headers.set('Authorization', `Bearer ${options.token}`)
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
   }
 
-  if (!response.ok) {
-    let message = `A requisição falhou com o código ${response.status}.`
-    const errorText = await response.text().catch(() => '')
-    if (errorText) {
-      try {
-        const payload = JSON.parse(errorText) as { message?: string }
-        message = payload.message || errorText
-      } catch { message = errorText }
+  const requestId = crypto.randomUUID().slice(0, 8)
+  const method = options.method ?? 'GET'
+  const endpoint = url.pathname + url.search
+
+  logger.info('api', `${method} ${endpoint} (req #${requestId})`, {
+    method,
+    endpoint,
+    requestId,
+  })
+
+  const startedAt = performance.now()
+
+  let response: Response
+  try {
+    response = await fetch(url.toString(), {
+      ...options,
+      headers,
+      body:
+        options.body instanceof FormData
+          ? options.body
+          : options.body
+          ? JSON.stringify(options.body)
+          : undefined,
+    })
+  } catch (rawError) {
+    const elapsed = Math.round(performance.now() - startedAt)
+    const message = rawError instanceof Error ? rawError.message : String(rawError)
+
+    let code: ApiError['code'] = 'NETWORK_ERROR'
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      code = 'OFFLINE'
+    } else if (
+      typeof window !== 'undefined' &&
+      window.location.protocol === 'https:' &&
+      url.protocol === 'http:'
+    ) {
+      code = 'MIXED_CONTENT'
     }
-    const context = {
-      requestId,
+
+    logger.error('api', `${method} ${endpoint} FALHOU em ${elapsed}ms: ${message}`, {
       method,
-      url: url.toString(),
-      status: response.status,
-      statusText: response.statusText,
-      durationMs: Math.round(performance.now() - startedAt),
+      endpoint,
+      requestId,
+      elapsed,
+      code,
+      error: message,
+    })
+
+    throw new ApiError(
+      code === 'OFFLINE'
+        ? 'Sem conexao com a internet.'
+        : code === 'MIXED_CONTENT'
+        ? 'Bloqueio de seguranca (Mixed Content): o site seguro nao pode acessar a API em HTTP.'
+        : `Erro de conexao com a API: ${message}`,
+      0,
+      code,
+      requestId,
+    )
+  }
+
+  const elapsed = Math.round(performance.now() - startedAt)
+
+  if (!response.ok) {
+    let message = 'Falha ao processar requisicao'
+    try {
+      const payload = await response.json()
+      message = payload.message || payload.error || message
+    } catch {
+      message = response.statusText || message
     }
-    if (response.status >= 500) logger.error('api.http_error', message, context)
-    else logger.warn('api.http_error', message, context)
+
+    logger.warn('api', `${method} ${endpoint} HTTP ${response.status} em ${elapsed}ms: ${message}`, {
+      method,
+      endpoint,
+      requestId,
+      status: response.status,
+      elapsed,
+      message,
+    })
+
     throw new ApiError(message, response.status, 'HTTP_ERROR', requestId)
   }
 
-  logger.debug('api.response', `${method} ${url.pathname} concluído.`, {
+  logger.info('api', `${method} ${endpoint} HTTP ${response.status} em ${elapsed}ms`, {
+    method,
+    endpoint,
     requestId,
     status: response.status,
-    durationMs: Math.round(performance.now() - startedAt),
+    elapsed,
   })
+
   if (response.status === 204) return undefined as T
-  const text = await response.text()
-  return (text ? JSON.parse(text) : undefined) as T
+  return (await response.json()) as T
 }
 
 async function requestBlob(path: string, token: string): Promise<Blob> {
-  const response = await fetch(new URL(path, API_BASE_URL), {
-    headers: { Authorization: `Bearer ${token}` },
-  })
+  const url = new URL(path, API_BASE_URL)
+  const headers = new Headers({ Authorization: `Bearer ${token}` })
+  const response = await fetch(url.toString(), { headers })
   if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    let message = text || `A requisição falhou com o código ${response.status}.`
-    try { message = (JSON.parse(text) as { message?: string }).message || message } catch { /* resposta textual */ }
-    throw new ApiError(message, response.status)
+    throw new ApiError('Falha ao baixar arquivo', response.status)
   }
   return response.blob()
 }
@@ -160,35 +174,38 @@ export const api = {
       body: { email, password },
     }),
 
-  listMembers: (token: string, query = '') =>
-    request<MemberSummary[]>('/api/members', { token, query: { query } }),
-  getMember: (token: string, memberId: number) =>
-    request<MemberDetail>(`/api/members/${memberId}`, { token }),
+  listMembers: (token: string, search?: string) =>
+    request<MemberSummary[]>('/api/members', { token, query: { search } }),
+  getMember: (token: string, id: number) =>
+    request<MemberDetail>(`/api/members/${id}`, { token }),
   createMember: (token: string, body: MemberPayload) =>
-    request<MemberSummary>('/api/members', { method: 'POST', token, body }),
-  updateMember: (token: string, memberId: number, body: MemberPayload) =>
-    request<MemberSummary>(`/api/members/${memberId}`, { method: 'PUT', token, body }),
-  deleteMember: (token: string, memberId: number) =>
-    request<void>(`/api/members/${memberId}`, { method: 'DELETE', token }),
+    request<MemberDetail>('/api/members', { method: 'POST', token, body }),
+  updateMember: (token: string, id: number, body: MemberPayload) =>
+    request<MemberDetail>(`/api/members/${id}`, { method: 'PUT', token, body }),
+  deleteMember: (token: string, id: number) =>
+    request<void>(`/api/members/${id}`, { method: 'DELETE', token }),
 
-  createMotorcycle: (token: string, memberId: number, body: MotorcyclePayload) =>
-    request<Motorcycle>(`/api/members/${memberId}/motorcycles`, { method: 'POST', token, body }),
-  updateMotorcycle: (token: string, motorcycleId: number, body: MotorcyclePayload) =>
-    request<Motorcycle>(`/api/motorcycles/${motorcycleId}`, { method: 'PUT', token, body }),
-  deleteMotorcycle: (token: string, motorcycleId: number) =>
-    request<void>(`/api/motorcycles/${motorcycleId}`, { method: 'DELETE', token }),
+  createMotorcycle: (token: string, body: MotorcyclePayload) =>
+    request<Motorcycle>('/api/motorcycles', { method: 'POST', token, body }),
+  updateMotorcycle: (token: string, id: number, body: MotorcyclePayload) =>
+    request<Motorcycle>(`/api/motorcycles/${id}`, { method: 'PUT', token, body }),
+  deleteMotorcycle: (token: string, id: number) =>
+    request<void>(`/api/motorcycles/${id}`, { method: 'DELETE', token }),
 
-  listEvents: (token: string) => request<ClubEvent[]>('/api/events', { token }),
-  getEvent: (token: string, eventId: number) => request<ClubEvent>(`/api/events/${eventId}`, { token }),
+  listEvents: (token: string) =>
+    request<ClubEvent[]>('/api/events', { token }),
+  getEvent: (token: string, id: number) =>
+    request<ClubEvent>(`/api/events/${id}`, { token }),
   createEvent: (token: string, body: EventPayload) =>
     request<ClubEvent>('/api/events', { method: 'POST', token, body }),
-  updateEvent: (token: string, eventId: number, body: EventPayload) =>
-    request<ClubEvent>(`/api/events/${eventId}`, { method: 'PUT', token, body }),
-  deleteEvent: (token: string, eventId: number) =>
-    request<void>(`/api/events/${eventId}`, { method: 'DELETE', token }),
-  listEventAttendances: (token: string, eventId: number) =>
+  updateEvent: (token: string, id: number, body: EventPayload) =>
+    request<ClubEvent>(`/api/events/${id}`, { method: 'PUT', token, body }),
+  deleteEvent: (token: string, id: number) =>
+    request<void>(`/api/events/${id}`, { method: 'DELETE', token }),
+
+  listAttendances: (token: string, eventId: number) =>
     request<AttendanceRecord[]>(`/api/events/${eventId}/attendances`, { token }),
-  saveEventAttendances: (token: string, eventId: number, attendances: AttendanceItemPayload[]) =>
+  saveAttendances: (token: string, eventId: number, attendances: AttendanceItemPayload[]) =>
     request<AttendanceRecord[]>(`/api/events/${eventId}/attendances`, {
       method: 'PUT', token, body: { attendances },
     }),
@@ -215,8 +232,17 @@ export const api = {
       token,
       body: { status, paymentDate, addToCash },
     }),
+
   getCashBalance: (token: string) =>
     request<{ balance: number }>('/api/cash/balance', { token }),
+  getCashSummary: (token: string) =>
+    request<CashSummary>('/api/cash/summary', { token }),
+  listCashMovements: (token: string) =>
+    request<CashMovement[]>('/api/cash/movements', { token }),
+  createCashMovement: (token: string, body: CreateCashMovementPayload) =>
+    request<CashMovement>('/api/cash/movements', { method: 'POST', token, body }),
+  deleteCashMovement: (token: string, id: number) =>
+    request<void>(`/api/cash/movements/${id}`, { method: 'DELETE', token }),
 
   listAccountsPayable: (token: string) =>
     request<AccountPayable[]>('/api/accounts-payable', { token }),

@@ -63,7 +63,8 @@ public class SecurityConfig {
                                 "/api/members/**",
                                 "/api/motorcycles/**",
                                 "/api/monthly-fees/**",
-                                "/api/events/**"
+                                "/api/events/**",
+                                "/api/cash/**"
                         ).hasAnyRole(
                                 "DIRETORIA",
                                 "ADMINISTRATIVO"
@@ -91,7 +92,8 @@ public class SecurityConfig {
                                 HttpMethod.DELETE,
                                 "/api/members/**",
                                 "/api/motorcycles/**",
-                                "/api/events/**"
+                                "/api/events/**",
+                                "/api/cash/**"
                         ).hasAnyRole(
                                 "DIRETORIA",
                                 "ADMINISTRATIVO"
