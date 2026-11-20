@@ -1,4 +1,4 @@
-import { CalendarDays, Check, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { CalendarDays, Check, Clock, MapPin, Pencil, Plus, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader } from '../components/ui'
@@ -12,6 +12,7 @@ const emptyEvent: EventPayload = {
   title: '',
   type: 'ROLE',
   eventDate: currentDate(),
+  eventTime: null,
   place: '',
   description: '',
 }
@@ -124,6 +125,35 @@ function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = fals
   const openDetails = () => navigate(`/eventos/${event.id}`)
   const status = event.status ?? 'AGENDADO'
 
+  const share = async () => {
+    const eventUrl = new URL(`/eventos/${event.id}`, window.location.origin).toString()
+    const statusLabel: Record<EventStatus, string> = {
+      AGENDADO: 'Agendado',
+      CONCLUIDO: 'Concluído',
+      CANCELADO: 'Cancelado',
+    }
+    const text = [
+      `Evento: ${event.title}`,
+      `Tipo: ${eventTypeLabel[event.type]}`,
+      `Data: ${formatDate(event.eventDate)}`,
+      `Horário: ${event.eventTime ? event.eventTime.slice(0, 5) : 'Não informado'}`,
+      `Local: ${event.place}`,
+      `Status: ${statusLabel[status]}`,
+      `Descrição: ${event.description}`,
+    ].join('\n')
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.title, text, url: eventUrl })
+        return
+      } catch (cause) {
+        if (cause instanceof DOMException && cause.name === 'AbortError') return
+      }
+    }
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}\nLink: ${eventUrl}`)}`, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <article
       className={`event-card event-card-clickable event-card-${status.toLowerCase()}`}
@@ -143,24 +173,25 @@ function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = fals
       <div className="event-card-top">
         <div className="event-date-large"><strong>{event.eventDate.slice(8, 10)}</strong><span>{new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(`${event.eventDate}T12:00:00`)).replace('.', '')}</span></div>
         <span className={`event-type type-${event.type.toLowerCase()}`}>{eventTypeLabel[event.type]}</span>
-        {canEdit && <div className="row-actions">
+        <div className="row-actions">
+          <button className="event-share-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); void share() }} aria-label={`Compartilhar evento ${event.title}`} title="Compartilhar"><Share2 size={14} /></button>
           {canSetStatus && <>
             <button className={`event-status-button complete${status === 'CONCLUIDO' ? ' active' : ''}`} disabled={updatingStatus} onClick={(clickEvent) => { clickEvent.stopPropagation(); onStatusChange?.('CONCLUIDO') }} aria-label="Marcar evento como concluído" title="Concluído"><Check size={14} /></button>
             <button className={`event-status-button cancel${status === 'CANCELADO' ? ' active' : ''}`} disabled={updatingStatus} onClick={(clickEvent) => { clickEvent.stopPropagation(); onStatusChange?.('CANCELADO') }} aria-label="Marcar evento como cancelado" title="Cancelado"><X size={14} /></button>
           </>}
-          <button className="icon-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); onEdit() }} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={(clickEvent) => { clickEvent.stopPropagation(); onDelete() }} aria-label="Excluir evento"><Trash2 size={16} /></button>
-        </div>}
+          {canEdit && <><button className="icon-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); onEdit() }} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={(clickEvent) => { clickEvent.stopPropagation(); onDelete() }} aria-label="Excluir evento"><Trash2 size={16} /></button></>}
+        </div>
       </div>
       <h3>{event.title}</h3>
       <p>{event.description}</p>
-      <div className="event-meta"><span><CalendarDays size={16} /> {formatDate(event.eventDate)}</span><span><MapPin size={16} /> {event.place}</span></div>
+      <div className="event-meta"><span><CalendarDays size={16} /> {formatDate(event.eventDate)}</span>{event.eventTime && <span><Clock size={16} /> {event.eventTime.slice(0, 5)}</span>}<span><MapPin size={16} /> {event.place}</span></div>
     </article>
   )
 }
 
 function EventForm({ initial, onClose, onSave }: { initial: ClubEvent | null; onClose: () => void; onSave: (payload: EventPayload) => Promise<void> }) {
   const [form, setForm] = useState<EventPayload>(initial ? {
-    title: initial.title, type: initial.type, eventDate: initial.eventDate.slice(0, 10), place: initial.place, description: initial.description,
+    title: initial.title, type: initial.type, eventDate: initial.eventDate.slice(0, 10), eventTime: initial.eventTime, place: initial.place, description: initial.description,
   } : emptyEvent)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -178,6 +209,7 @@ function EventForm({ initial, onClose, onSave }: { initial: ClubEvent | null; on
           <label className="field field-span"><span>Título</span><input value={form.title} onChange={(e) => update('title', e.target.value)} required /></label>
           <label className="field"><span>Tipo</span><select value={form.type} onChange={(e) => update('type', e.target.value as EventType)}><option value="ROLE">Passeio</option><option value="EVENTO">Evento</option><option value="REUNIAO">Reunião</option></select></label>
           <label className="field"><span>Data</span><input type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} required /></label>
+          <label className="field"><span>Horário</span><input type="time" value={form.eventTime ?? ''} onChange={(e) => update('eventTime', e.target.value || null)} /></label>
           <label className="field field-span"><span>Local</span><input value={form.place} onChange={(e) => update('place', e.target.value)} required /></label>
           <label className="field field-span"><span>Descrição</span><textarea rows={4} value={form.description} onChange={(e) => update('description', e.target.value)} required /></label>
         </div>

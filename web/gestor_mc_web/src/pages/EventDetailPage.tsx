@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, CheckCheck, MapPin, Save, UserCheck, UsersRound } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCheck, Clock, MapPin, Save, UserCheck, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DataTable, MemberIdentity } from '../components/DataTable'
@@ -95,6 +95,7 @@ export function EventDetailPage() {
 
       <section className="event-detail-meta">
         <span><CalendarDays size={18} /> {formatDate(event.eventDate)}</span>
+        {event.eventTime && <span><Clock size={18} /> {event.eventTime.slice(0, 5)}</span>}
         <span><MapPin size={18} /> {event.place}</span>
       </section>
       {event.eventDate > currentDate() && <InlineNotice tone="error">A chamada será liberada no dia do evento.</InlineNotice>}

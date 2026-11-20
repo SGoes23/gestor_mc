@@ -292,6 +292,8 @@ tbody tr:hover td { background: #fcfbf8; }
 .event-card-top, .event-card h3, .event-card > p, .event-meta { position: relative; z-index: 1; }
 .event-card-top .row-actions { position: relative; z-index: 4; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
 .event-status-button { display: grid; width: 28px; height: 28px; padding: 0; place-items: center; color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 6px; transition: 140ms ease; }
+.event-share-button { display: grid; width: 28px; height: 28px; padding: 0; place-items: center; color: #325f77; background: #f2f8fb; border: 1px solid #c9dce6; border-radius: 6px; transition: 140ms ease; }
+.event-share-button:hover { color: #fff; background: #325f77; border-color: #325f77; }
 .event-status-button.complete:hover, .event-status-button.complete.active { color: #fff; background: var(--green); border-color: var(--green); }
 .event-status-button.cancel:hover, .event-status-button.cancel.active { color: #fff; background: var(--red); border-color: var(--red); }
 .event-completed-banner { position: relative; z-index: 2; margin: -20px -20px 14px; padding: 7px 20px; color: #fff; background: var(--green); font-size: 10px; font-weight: 900; letter-spacing: 0.15em; text-align: center; text-transform: uppercase; }

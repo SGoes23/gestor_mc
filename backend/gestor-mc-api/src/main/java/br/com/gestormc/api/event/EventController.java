@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -56,6 +57,7 @@ public class EventController {
                 request.title(),
                 request.type(),
                 request.eventDate(),
+                request.eventTime(),
                 request.place(),
                 request.description()
         );
@@ -71,6 +73,7 @@ public class EventController {
         event.setTitle(request.title());
         event.setType(request.type());
         event.setEventDate(request.eventDate());
+        event.setEventTime(request.eventTime());
         event.setPlace(request.place());
         event.setDescription(request.description());
         return toResponse(eventRepository.save(event));
@@ -101,6 +104,7 @@ public class EventController {
                 event.getTitle(),
                 event.getType(),
                 event.getEventDate(),
+                event.getEventTime(),
                 event.getPlace(),
                 event.getDescription(),
                 event.getStatus()
@@ -111,6 +115,7 @@ public class EventController {
             @NotBlank String title,
             @NotNull EventType type,
             @NotNull LocalDate eventDate,
+            LocalTime eventTime,
             @NotBlank String place,
             @NotBlank String description
     ) {
@@ -121,6 +126,7 @@ public class EventController {
             String title,
             EventType type,
             LocalDate eventDate,
+            LocalTime eventTime,
             String place,
             String description,
             EventStatus status

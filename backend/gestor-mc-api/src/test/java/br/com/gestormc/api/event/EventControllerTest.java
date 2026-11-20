@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +35,7 @@ class EventControllerTest {
                 "Reunião mensal",
                 EventType.REUNIAO,
                 LocalDate.of(2026, 11, 20),
+                LocalTime.of(20, 0),
                 "Sede",
                 "Reunião ordinária"
         ));
@@ -59,6 +61,7 @@ class EventControllerTest {
                 "Reunião antiga",
                 EventType.REUNIAO,
                 LocalDate.of(2026, 11, 10),
+                LocalTime.of(19, 30),
                 "Sede",
                 "Descrição antiga"
         );
@@ -69,12 +72,14 @@ class EventControllerTest {
                 "Reunião atualizada",
                 EventType.REUNIAO,
                 LocalDate.of(2026, 11, 21),
+                LocalTime.of(20, 30),
                 "Nova sede",
                 "Descrição atualizada"
         ));
 
         verifyNoInteractions(snapshotRepository, memberRepository);
         assertThat(existing.getTitle()).isEqualTo("Reunião atualizada");
+        assertThat(existing.getEventTime()).isEqualTo(LocalTime.of(20, 30));
     }
 
     @Test
@@ -91,6 +96,7 @@ class EventControllerTest {
                 "Reunião mensal",
                 EventType.REUNIAO,
                 LocalDate.of(2026, 11, 8),
+                LocalTime.of(20, 0),
                 "Sede",
                 "Reunião ordinária"
         );

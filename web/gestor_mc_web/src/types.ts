@@ -60,6 +60,7 @@ export interface ClubEvent {
   title: string
   type: EventType
   eventDate: string
+  eventTime: string | null
   place: string
   description: string
   status: EventStatus
