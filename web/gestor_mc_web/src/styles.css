@@ -290,7 +290,7 @@ tbody tr:hover td { background: #fcfbf8; }
 .section-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .section-title > span { color: var(--muted); font-size: 11px; }
 .events-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.event-card { display: flex; min-height: 245px; flex-direction: column; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; transition: 150ms ease; }
+.event-card { position: relative; display: flex; min-height: 245px; overflow: hidden; flex-direction: column; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; transition: 150ms ease; }
 .event-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .event-card-clickable { cursor: pointer; }
 .event-card-clickable:focus-visible { border-color: #b99452; outline: 3px solid rgba(212, 148, 37, 0.18); }
@@ -303,6 +303,16 @@ tbody tr:hover td { background: #fcfbf8; }
 .type-evento { color: #325f77; background: #e7f1f6; }
 .type-reuniao { color: #624b7a; background: #f0e9f6; }
 .event-card-top .row-actions { margin-left: auto; }
+.event-card-top, .event-card h3, .event-card > p, .event-meta { position: relative; z-index: 1; }
+.event-card-top .row-actions { position: relative; z-index: 4; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.event-status-button { display: grid; width: 28px; height: 28px; padding: 0; place-items: center; color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 6px; transition: 140ms ease; }
+.event-share-button { display: grid; width: 28px; height: 28px; padding: 0; place-items: center; color: #325f77; background: #f2f8fb; border: 1px solid #c9dce6; border-radius: 6px; transition: 140ms ease; }
+.event-share-button:hover { color: #fff; background: #325f77; border-color: #325f77; }
+.event-status-button.complete:hover, .event-status-button.complete.active { color: #fff; background: var(--green); border-color: var(--green); }
+.event-status-button.cancel:hover, .event-status-button.cancel.active { color: #fff; background: var(--red); border-color: var(--red); }
+.event-completed-banner { position: relative; z-index: 2; margin: -20px -20px 14px; padding: 7px 20px; color: #fff; background: var(--green); font-size: 10px; font-weight: 900; letter-spacing: 0.15em; text-align: center; text-transform: uppercase; }
+.event-cancelled-ribbon { position: absolute; top: 48%; left: 50%; z-index: 3; width: 145%; padding: 9px; color: #fff; background: rgba(184, 60, 53, 0.92); box-shadow: 0 2px 8px rgba(84, 23, 19, 0.18); font-size: 11px; font-weight: 900; letter-spacing: 0.19em; pointer-events: none; text-align: center; text-transform: uppercase; transform: translate(-50%, -50%) rotate(-16deg); }
+.event-card-cancelado > h3, .event-card-cancelado > p, .event-card-cancelado .event-meta { opacity: 0.52; }
 .event-card h3 { margin: 19px 0 8px; color: var(--ink); font-family: Georgia, serif; font-size: 19px; }
 .event-card > p { display: -webkit-box; overflow: hidden; margin-bottom: 18px; color: var(--muted); font-size: 11px; line-height: 1.6; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .event-meta { display: flex; flex-direction: column; gap: 7px; margin-top: auto; padding-top: 13px; border-top: 1px solid var(--line-soft); }

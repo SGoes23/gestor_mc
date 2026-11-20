@@ -30,7 +30,7 @@ services:
       DB_NAME: ${DB_NAME:-gestor_mc}
       DB_USER: ${DB_USER:-gestor_mc}
       DB_PASSWORD: ${DB_PASSWORD:-gestor_mc_local}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-key-with-at-least-32-characters}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
       B2_BUCKET: ${B2_BUCKET:-gestor-mc-contas}

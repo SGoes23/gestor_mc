@@ -71,7 +71,8 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                "/api/monthly-fees/**"
+                                "/api/monthly-fees/**",
+                                "/api/events/**"
                         ).hasAnyRole(
                                 "DIRETORIA",
                                 "ADMINISTRATIVO"

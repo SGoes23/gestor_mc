@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "events")
@@ -29,19 +30,27 @@ public class Event {
     @Column(nullable = false)
     private LocalDate eventDate;
 
+    private LocalTime eventTime;
+
     @Column(nullable = false)
     private String place;
 
     @Column(nullable = false, length = 500)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventStatus status = EventStatus.AGENDADO;
+
     public Event() {
     }
 
-    public Event(String title, EventType type, LocalDate eventDate, String place, String description) {
+    public Event(String title, EventType type, LocalDate eventDate, LocalTime eventTime,
+                 String place, String description) {
         this.title = title;
         this.type = type;
         this.eventDate = eventDate;
+        this.eventTime = eventTime;
         this.place = place;
         this.description = description;
     }
@@ -74,6 +83,14 @@ public class Event {
         this.eventDate = eventDate;
     }
 
+    public LocalTime getEventTime() {
+        return eventTime;
+    }
+
+    public void setEventTime(LocalTime eventTime) {
+        this.eventTime = eventTime;
+    }
+
     public String getPlace() {
         return place;
     }
@@ -88,5 +105,13 @@ public class Event {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EventStatus status) {
+        this.status = status;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -55,6 +57,7 @@ public class EventController {
                 request.title(),
                 request.type(),
                 request.eventDate(),
+                request.eventTime(),
                 request.place(),
                 request.description()
         );
@@ -70,6 +73,7 @@ public class EventController {
         event.setTitle(request.title());
         event.setType(request.type());
         event.setEventDate(request.eventDate());
+        event.setEventTime(request.eventTime());
         event.setPlace(request.place());
         event.setDescription(request.description());
         return toResponse(eventRepository.save(event));
@@ -79,6 +83,14 @@ public class EventController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         eventRepository.delete(findById(id));
+    }
+
+    @PatchMapping("/{id}/status")
+    public EventResponse updateStatus(@PathVariable Long id,
+                                      @RequestBody @Valid UpdateEventStatusRequest request) {
+        Event event = findById(id);
+        event.setStatus(request.status());
+        return toResponse(eventRepository.save(event));
     }
 
     private Event findById(Long id) {
@@ -92,8 +104,10 @@ public class EventController {
                 event.getTitle(),
                 event.getType(),
                 event.getEventDate(),
+                event.getEventTime(),
                 event.getPlace(),
-                event.getDescription()
+                event.getDescription(),
+                event.getStatus()
         );
     }
 
@@ -101,6 +115,7 @@ public class EventController {
             @NotBlank String title,
             @NotNull EventType type,
             @NotNull LocalDate eventDate,
+            LocalTime eventTime,
             @NotBlank String place,
             @NotBlank String description
     ) {
@@ -111,8 +126,15 @@ public class EventController {
             String title,
             EventType type,
             LocalDate eventDate,
+            LocalTime eventTime,
             String place,
-            String description
+            String description,
+            EventStatus status
+    ) {
+    }
+
+    public record UpdateEventStatusRequest(
+            @NotNull EventStatus status
     ) {
     }
 }
