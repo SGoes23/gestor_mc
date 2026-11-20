@@ -82,6 +82,7 @@ export function EventDetailPage() {
   if (loading) return <LoadingState label="Carregando lista de presença..." />
   if (error && !event) return <ErrorState message={error} onRetry={() => void load()} />
   if (!event) return <ErrorState message="Evento não encontrado." />
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`
 
   return (
     <div className="page-stack">
@@ -96,7 +97,7 @@ export function EventDetailPage() {
       <section className="event-detail-meta">
         <span><CalendarDays size={18} /> {formatDate(event.eventDate)}</span>
         {event.eventTime && <span><Clock size={18} /> {event.eventTime.slice(0, 5)}</span>}
-        <span><MapPin size={18} /> {event.place}</span>
+        <a className="event-map-link" href={mapsUrl} target="_blank" rel="noreferrer" aria-label={`Abrir ${event.place} no Google Maps`}><MapPin size={18} /> {event.place}</a>
       </section>
       {event.eventDate > currentDate() && <InlineNotice tone="error">A chamada será liberada no dia do evento.</InlineNotice>}
       {notice && <InlineNotice>{notice}</InlineNotice>}
