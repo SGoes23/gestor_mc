@@ -124,6 +124,7 @@ function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = fals
   const navigate = useNavigate()
   const openDetails = () => navigate(`/eventos/${event.id}`)
   const status = event.status ?? 'AGENDADO'
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`
 
   const share = async () => {
     const eventUrl = new URL(`/eventos/${event.id}`, window.location.origin).toString()
@@ -138,6 +139,7 @@ function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = fals
       `Data: ${formatDate(event.eventDate)}`,
       `Horário: ${event.eventTime ? event.eventTime.slice(0, 5) : 'Não informado'}`,
       `Local: ${event.place}`,
+      `Mapa: ${mapsUrl}`,
       `Status: ${statusLabel[status]}`,
       `Descrição: ${event.description}`,
     ].join('\n')
@@ -184,7 +186,7 @@ function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = fals
       </div>
       <h3>{event.title}</h3>
       <p>{event.description}</p>
-      <div className="event-meta"><span><CalendarDays size={16} /> {formatDate(event.eventDate)}</span>{event.eventTime && <span><Clock size={16} /> {event.eventTime.slice(0, 5)}</span>}<span><MapPin size={16} /> {event.place}</span></div>
+      <div className="event-meta"><span><CalendarDays size={16} /> {formatDate(event.eventDate)}</span>{event.eventTime && <span><Clock size={16} /> {event.eventTime.slice(0, 5)}</span>}<a className="event-map-link" href={mapsUrl} target="_blank" rel="noreferrer" onClick={(clickEvent) => clickEvent.stopPropagation()} aria-label={`Abrir ${event.place} no Google Maps`}><MapPin size={16} /> {event.place}</a></div>
     </article>
   )
 }
