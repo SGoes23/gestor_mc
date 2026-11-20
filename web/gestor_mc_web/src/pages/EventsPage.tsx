@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
+import { CalendarDays, Check, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EmptyState, ErrorState, InlineNotice, LoadingState, Modal, PageHeader } from '../components/ui'
@@ -6,7 +6,7 @@ import { ModalFormActions } from '../components/FormControls'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { currentDate, eventTypeLabel, formatDate } from '../lib/format'
-import type { ClubEvent, EventPayload, EventType } from '../types'
+import type { ClubEvent, EventPayload, EventStatus, EventType } from '../types'
 
 const emptyEvent: EventPayload = {
   title: '',
@@ -23,6 +23,7 @@ export function EventsPage() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [editing, setEditing] = useState<ClubEvent | null | undefined>(undefined)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     if (!session) return
@@ -64,6 +65,21 @@ export function EventsPage() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Falha ao excluir evento.') }
   }
 
+  const updateStatus = async (event: ClubEvent, status: EventStatus) => {
+    if (!session || event.status === status) return
+    setUpdatingStatusId(event.id)
+    setError('')
+    try {
+      const updated = await api.updateEventStatus(session.token, event.id, status)
+      setEvents((current) => current.map((item) => item.id === updated.id ? updated : item))
+      setNotice(status === 'CONCLUIDO' ? 'Evento marcado como concluído.' : 'Evento marcado como cancelado.')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Falha ao atualizar o status do evento.')
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
   return (
     <div className="page-stack">
       <PageHeader
@@ -91,7 +107,7 @@ export function EventsPage() {
             <section className="section-block past-events">
               <div className="section-title"><div><span className="eyebrow">Memória</span><h2>Eventos realizados</h2></div><span>{grouped.past.length} registros</span></div>
               <div className="events-grid">
-                {grouped.past.map((event) => <EventCard key={event.id} event={event} canEdit={isDiretoria} onEdit={() => setEditing(event)} onDelete={() => void remove(event)} />)}
+                {grouped.past.map((event) => <EventCard key={event.id} event={event} canEdit={isDiretoria} canSetStatus={isDiretoria} updatingStatus={updatingStatusId === event.id} onStatusChange={(status) => void updateStatus(event, status)} onEdit={() => setEditing(event)} onDelete={() => void remove(event)} />)}
               </div>
             </section>
           )}
@@ -103,13 +119,14 @@ export function EventsPage() {
   )
 }
 
-function EventCard({ event, canEdit, onEdit, onDelete }: { event: ClubEvent; canEdit: boolean; onEdit: () => void; onDelete: () => void }) {
+function EventCard({ event, canEdit, canSetStatus = false, updatingStatus = false, onStatusChange, onEdit, onDelete }: { event: ClubEvent; canEdit: boolean; canSetStatus?: boolean; updatingStatus?: boolean; onStatusChange?: (status: EventStatus) => void; onEdit: () => void; onDelete: () => void }) {
   const navigate = useNavigate()
   const openDetails = () => navigate(`/eventos/${event.id}`)
+  const status = event.status ?? 'AGENDADO'
 
   return (
     <article
-      className="event-card event-card-clickable"
+      className={`event-card event-card-clickable event-card-${status.toLowerCase()}`}
       role="link"
       tabIndex={0}
       aria-label={`Abrir detalhes e presença do evento ${event.title}`}
@@ -121,10 +138,18 @@ function EventCard({ event, canEdit, onEdit, onDelete }: { event: ClubEvent; can
         }
       }}
     >
+      {status === 'CONCLUIDO' && <div className="event-completed-banner">Concluído</div>}
+      {status === 'CANCELADO' && <div className="event-cancelled-ribbon">Cancelado</div>}
       <div className="event-card-top">
         <div className="event-date-large"><strong>{event.eventDate.slice(8, 10)}</strong><span>{new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(`${event.eventDate}T12:00:00`)).replace('.', '')}</span></div>
         <span className={`event-type type-${event.type.toLowerCase()}`}>{eventTypeLabel[event.type]}</span>
-        {canEdit && <div className="row-actions"><button className="icon-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); onEdit() }} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={(clickEvent) => { clickEvent.stopPropagation(); onDelete() }} aria-label="Excluir evento"><Trash2 size={16} /></button></div>}
+        {canEdit && <div className="row-actions">
+          {canSetStatus && <>
+            <button className={`event-status-button complete${status === 'CONCLUIDO' ? ' active' : ''}`} disabled={updatingStatus} onClick={(clickEvent) => { clickEvent.stopPropagation(); onStatusChange?.('CONCLUIDO') }} aria-label="Marcar evento como concluído" title="Concluído"><Check size={14} /></button>
+            <button className={`event-status-button cancel${status === 'CANCELADO' ? ' active' : ''}`} disabled={updatingStatus} onClick={(clickEvent) => { clickEvent.stopPropagation(); onStatusChange?.('CANCELADO') }} aria-label="Marcar evento como cancelado" title="Cancelado"><X size={14} /></button>
+          </>}
+          <button className="icon-button" onClick={(clickEvent) => { clickEvent.stopPropagation(); onEdit() }} aria-label="Editar evento"><Pencil size={16} /></button><button className="icon-button danger" onClick={(clickEvent) => { clickEvent.stopPropagation(); onDelete() }} aria-label="Excluir evento"><Trash2 size={16} /></button>
+        </div>}
       </div>
       <h3>{event.title}</h3>
       <p>{event.description}</p>

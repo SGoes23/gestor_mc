@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,6 +82,14 @@ public class EventController {
         eventRepository.delete(findById(id));
     }
 
+    @PatchMapping("/{id}/status")
+    public EventResponse updateStatus(@PathVariable Long id,
+                                      @RequestBody @Valid UpdateEventStatusRequest request) {
+        Event event = findById(id);
+        event.setStatus(request.status());
+        return toResponse(eventRepository.save(event));
+    }
+
     private Event findById(Long id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento nao encontrado"));
@@ -93,7 +102,8 @@ public class EventController {
                 event.getType(),
                 event.getEventDate(),
                 event.getPlace(),
-                event.getDescription()
+                event.getDescription(),
+                event.getStatus()
         );
     }
 
@@ -112,7 +122,13 @@ public class EventController {
             EventType type,
             LocalDate eventDate,
             String place,
-            String description
+            String description,
+            EventStatus status
+    ) {
+    }
+
+    public record UpdateEventStatusRequest(
+            @NotNull EventStatus status
     ) {
     }
 }

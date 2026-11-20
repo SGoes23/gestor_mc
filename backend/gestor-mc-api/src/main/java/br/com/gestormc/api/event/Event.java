@@ -35,6 +35,10 @@ public class Event {
     @Column(nullable = false, length = 500)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventStatus status = EventStatus.AGENDADO;
+
     public Event() {
     }
 
@@ -88,5 +92,13 @@ public class Event {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EventStatus status) {
+        this.status = status;
     }
 }

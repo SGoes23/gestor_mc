@@ -53,6 +53,7 @@ export type MemberPayload = Omit<MemberSummary, 'id' | 'email'> & {
 export type MotorcyclePayload = Omit<Motorcycle, 'id'>
 
 export type EventType = 'ROLE' | 'EVENTO' | 'REUNIAO'
+export type EventStatus = 'AGENDADO' | 'CONCLUIDO' | 'CANCELADO'
 
 export interface ClubEvent {
   id: number
@@ -61,9 +62,10 @@ export interface ClubEvent {
   eventDate: string
   place: string
   description: string
+  status: EventStatus
 }
 
-export type EventPayload = Omit<ClubEvent, 'id'>
+export type EventPayload = Omit<ClubEvent, 'id' | 'status'>
 
 export type AttendanceStatus = 'NAO_REGISTRADO' | 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADO'
 

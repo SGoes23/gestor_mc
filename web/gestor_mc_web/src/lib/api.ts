@@ -4,6 +4,7 @@ import type {
   AttendanceRecord,
   ClubEvent,
   EventPayload,
+  EventStatus,
   EventAttendanceSummary,
   GenerateMonthlyFeesPayload,
   GenerateMonthlyFeesResult,
@@ -162,6 +163,8 @@ export const api = {
     request<ClubEvent>('/api/events', { method: 'POST', token, body }),
   updateEvent: (token: string, eventId: number, body: EventPayload) =>
     request<ClubEvent>(`/api/events/${eventId}`, { method: 'PUT', token, body }),
+  updateEventStatus: (token: string, eventId: number, status: EventStatus) =>
+    request<ClubEvent>(`/api/events/${eventId}/status`, { method: 'PATCH', token, body: { status } }),
   deleteEvent: (token: string, eventId: number) =>
     request<void>(`/api/events/${eventId}`, { method: 'DELETE', token }),
   listEventAttendances: (token: string, eventId: number) =>
